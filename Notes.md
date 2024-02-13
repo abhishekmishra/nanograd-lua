@@ -16,6 +16,7 @@ Abhishek Mishra
   - [Derivative at Another Point (x = -3)](#derivative-at-another-point-x---3)
   - [Derivative goes to 0](#derivative-goes-to-0)
   - [A More Complex Case](#a-more-complex-case)
+  - [Expressions for Neural Networks](#expressions-for-neural-networks)
 - [4. References](#4-references)
 
 # 1. About these Notes
@@ -248,7 +249,54 @@ print('slope = ' .. (d2 - d1)/h)
 -- slope = 0.99999999996214
 ```
 
+* We have some intuitions about how expressions and their derivatives will work.
+* Lets move to neural networks which will have massive expressions.
+
+## Expressions for Neural Networks
+
+As mentioned neural networks will have massive expressions. So we need some
+datastructure to maintain the massive expressions. And so we will build out the
+`Value` object which was shown in the beginning of the video, from the README
+of the micrograd project.
+
+* Lets start with the skeleton of a very simple value object.
+* *Lua Note:* Lua is object-oriented but does not have classes. To keep the
+  structure of the code similar to the one in the video,
+  we will write the classes using the excellent [*middleclass*][3] library.
+    - The code will be slightly more verbose than python.
+* Here we create a simple value class, then create an instance `a`, and
+  finally print it out.
+* *Lua Note:* To make sure the code can be run in an interpreter, all Lua
+  variables are being created in global scope. Usually we would write the code
+  in files, and make sure that the variables are marked `local`.
+
+```lua
+class = require 'middleclass'
+
+-- Declare the class Value
+Value = class('Value') -- 'Value' is the class' name
+
+-- constructor
+function Value:initialize(data)
+  self.data = data
+end
+
+-- tostring
+function Value:__tostring()
+  return 'Value(data = ' .. self.data .. ')'
+end
+
+a = Value(2.0)
+
+a
+-- Value(data = 2.0)
+```
+
+Now, we would like to create mutliple values and also be able to do things
+like `a + b` where `a` and `b` are values.
+
 # 4. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
+[3]: https://github.com/kikito/middleclass
