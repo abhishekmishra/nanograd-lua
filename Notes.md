@@ -157,6 +157,97 @@ x = 2/3
 * We consider a function with three scalar inputs - a, b, c with a single output
   d.
 
+```lua
+a = 2.0
+b = -3.0
+c = 10.0
+
+d = a*b + c
+
+d
+-- 4.0
+```
+
+* Now we would like to get the derivative of d w.r.t a, b and c.
+* We would like to get the intuition of what this will look like.
+* Lets start with derivative with respect to a. This means we will change a by
+  a small amount and calculate d. And then we will calculate slope at the point.
+* The value of d reduces by a small amount when we increase h by a small amount,
+  as a is multiplied by b in the expression, and b is negative. Thus increase
+  in a decreases the value of d.
+* This gives us an intuition about the slope of d with respect to a.
+* Note that using rules of differentiation also we will get the same answer
+  as the calculation below.
+* d(d)/da = b; therefore slope is b = -3.0
+
+```lua
+h = 0.00001
+a = 2.0
+b = -3.0
+c = 10.0
+
+d1 = a*b + c
+
+a = a + h
+
+d2 = a*b + c
+
+print('d1 = ' .. d1)
+-- d1 = 4.0
+print('d2 = ' .. d2)
+-- d2 = 3.99997
+print('slope = ' .. (d2 - d1)/h)
+-- slope = -3.0000000000641
+```
+
+* Now lets consider the derivative of d w.r.t. b.
+* Again from the rules of differentiation d(d)/db = a.
+* Therefore we should expect the answer 2.0.
+
+```lua
+h = 0.00001
+a = 2.0
+b = -3.0
+c = 10.0
+
+d1 = a*b + c
+
+b = b + h
+
+d2 = a*b + c
+
+print('d1 = ' .. d1)
+-- d1 = 4.0
+print('d2 = ' .. d2)
+-- d2 = 4.00002
+print('slope = ' .. (d2 - d1)/h)
+-- slope = 2.0000000000131
+```
+
+* Finally lets consider the derivative of d w.r.t. c.
+* From the rules of differentiation d(d)/dc = 1.
+* With changes in c, d changes by the exact same amount.
+
+```lua
+h = 0.00001
+a = 2.0
+b = -3.0
+c = 10.0
+
+d1 = a*b + c
+
+c = c + h
+
+d2 = a*b + c
+
+print('d1 = ' .. d1)
+-- d1 = 4.0
+print('d2 = ' .. d2)
+-- d2 = 4.00001
+print('slope = ' .. (d2 - d1)/h)
+-- slope = 0.99999999996214
+```
+
 # 4. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
