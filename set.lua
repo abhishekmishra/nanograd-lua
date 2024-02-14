@@ -73,7 +73,12 @@ end
 
 -- string representation of the set
 function Set:__tostring()
-    return "{" .. table.concat(self:items(), ", ") .. "}"
+    local res = {}
+    for k, _ in pairs(self.values) do
+        table.insert(res, tostring(k))
+    end
+
+    return "{" .. table.concat(res, ", ") .. "}"
 end
 
 -- export the Set class
