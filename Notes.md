@@ -17,6 +17,10 @@ Abhishek Mishra
   - [3.3. Derivative goes to 0](#33-derivative-goes-to-0)
 - [4. Part 2: A More Complex Case](#4-part-2-a-more-complex-case)
 - [5. Expressions for Neural Networks](#5-expressions-for-neural-networks)
+  - [5.1. Core Value Object](#51-core-value-object)
+  - [5.2. Addition of Value Objects](#52-addition-of-value-objects)
+  - [5.3. Multiplication of Value Objects](#53-multiplication-of-value-objects)
+  - [5.4. Children of Value Objects](#54-children-of-value-objects)
 - [6. References](#6-references)
 
 # 1. About these Notes
@@ -259,6 +263,8 @@ datastructure to maintain the massive expressions. And so we will build out the
 `Value` object which was shown in the beginning of the video, from the README
 of the micrograd project.
 
+## 5.1. Core Value Object
+
 * Lets start with the skeleton of a very simple value object.
 * *Lua Note:* Lua is object-oriented but does not have classes. To keep the
   structure of the code similar to the one in the video,
@@ -292,11 +298,92 @@ a
 -- Value(data = 2.0)
 ```
 
-Now, we would like to create mutliple values and also be able to do things
+## 5.2. Addition of Value Objects
+
+* Now, we would like to create mutliple values and also be able to do things
 like `a + b` where `a` and `b` are values.
+* We're going to use the metamethod `__add` in Lua to allow us to define 
+  addtion for Value objects.
+* The addition inside `Value:__add` is a simple floating point addition of the
+  data of two Value objects.
+
+```lua
+Value = class('Value')
+
+function Value:initialize(data)
+  self.data = data
+end
+
+function Value:__tostring()
+  return 'Value(data = ' .. self.data .. ')'
+end
+
+-- add this Value object with another
+-- using metamethod _add
+function Value:__add(other)
+  return Value(self.data + other.data)
+end
+
+a = Value(2.0)
+b = Value(-3.0)
+
+-- this line will invoke the metamethod Value:__add
+a + b
+-- Value(data = -1.0)
+
+```
+
+## 5.3. Multiplication of Value Objects
+
+* Multiplication of Value objects is fairly simple and uses the `__mul`
+  metamethod.
+* This will now help us write expressions like `a * b` and `a * b + c`.
+
+```lua
+-- Class definition same as in the previous snippet.
+-- multiply this Value object with another
+-- using metamethod _mul
+function Value:__mul(other)
+  return Value(self.data * other.data)
+end
+
+a = Value(2.0)
+b = Value(-3.0)
+c = Value(10.0)
+
+a * b
+-- Value(data = -6.0)
+
+-- the next line is equivalent to
+-- (a.__mul(b)).__add(c)
+d = a * b + c
+
+d
+--Value(data = 4.0)
+```
+
+## 5.4. Children of Value Objects
+
+* What we're missing is the connective tissue of the expression.
+* We want to keep these expression graphs, so we need to keep pointers about
+  what values produce what other values.
+* So we're going to introduce a new variable called `_children` which will be
+  by default an empty tuple.
+* *Lua Note:* Lua does not have tuples. In fact it has only one in-built
+  compound datatype **tables**. So we're going to use a table to store
+  `_children`.
+* Internally the `children` are stored as **set** for efficiency.
+* *Lua Note:* Lua does not have sets either. However sets can be eumulated in
+  Lua using tables by keeping the elements as *indices* of a table. See 
+  [11.5 – Sets and Bags (Programming in Lua)][4] for details of this approach.
+
+```lua
+
+```
 
 # 6. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
 [3]: https://github.com/kikito/middleclass
+[4]: https://www.lua.org/pil/11.5.html
