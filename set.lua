@@ -19,6 +19,16 @@ function Set:initialize(list)
     end
 end
 
+-- empty set
+function Set.empty()
+    return Set({})
+end
+
+-- clear the set
+function Set:clear()
+    self.values = {}
+end
+
 -- add an element to the set
 function Set:add(elem)
     self.values[elem] = true
