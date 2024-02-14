@@ -12,12 +12,12 @@ Abhishek Mishra
 - [2. Part 0: micrograd overview](#2-part-0-micrograd-overview)
   - [2.1. Neural Networks](#21-neural-networks)
 - [3. Part 1: Derivative of a simple function with one input](#3-part-1-derivative-of-a-simple-function-with-one-input)
-  - [Derivative of the Expression](#derivative-of-the-expression)
-  - [Derivative at Another Point (x = -3)](#derivative-at-another-point-x---3)
-  - [Derivative goes to 0](#derivative-goes-to-0)
-  - [A More Complex Case](#a-more-complex-case)
-  - [Expressions for Neural Networks](#expressions-for-neural-networks)
-- [4. References](#4-references)
+  - [3.1. Derivative of the Expression](#31-derivative-of-the-expression)
+  - [3.2. Derivative at Another Point (x = -3)](#32-derivative-at-another-point-x---3)
+  - [3.3. Derivative goes to 0](#33-derivative-goes-to-0)
+- [4. Part 2: A More Complex Case](#4-part-2-a-more-complex-case)
+- [5. Expressions for Neural Networks](#5-expressions-for-neural-networks)
+- [6. References](#6-references)
 
 # 1. About these Notes
 
@@ -95,7 +95,7 @@ end
 
 ![plot#0: f(x) over x](plots/plot0.png)
 
-## Derivative of the Expression
+## 3.1. Derivative of the Expression
 * Now we will think about the derivative of the expression.
 * See the [Differentiation rules][2]
 * In neural networks no one actually writes an expression and derives it.
@@ -126,7 +126,7 @@ f(x+h)
 * f'(x) or df(x)/dx = 6*x - 4
 * Therefore f'(x) at x = 3 is 14.
 
-## Derivative at Another Point (x = -3)
+## 3.2. Derivative at Another Point (x = -3)
 
 * Let's calculate slope at another point, say x = -3
 * Even looking at the plot we can see that the slope of the function at x = -3
@@ -140,7 +140,7 @@ x = -3
 -- -21.999970000053
 ```
 
-## Derivative goes to 0
+## 3.3. Derivative goes to 0
 
 * At x=2/3, the function's slope is 0.
 * So the function will not respond to a nudge at this point.
@@ -152,7 +152,7 @@ x = 2/3
 -- 3.0000002482211e-05
 ```
 
-## A More Complex Case
+# 4. Part 2: A More Complex Case
 
 * Let's take a function with more than one inputs.
 * We consider a function with three scalar inputs - a, b, c with a single output
@@ -252,7 +252,7 @@ print('slope = ' .. (d2 - d1)/h)
 * We have some intuitions about how expressions and their derivatives will work.
 * Lets move to neural networks which will have massive expressions.
 
-## Expressions for Neural Networks
+# 5. Expressions for Neural Networks
 
 As mentioned neural networks will have massive expressions. So we need some
 datastructure to maintain the massive expressions. And so we will build out the
@@ -295,7 +295,7 @@ a
 Now, we would like to create mutliple values and also be able to do things
 like `a + b` where `a` and `b` are values.
 
-# 4. References
+# 6. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
