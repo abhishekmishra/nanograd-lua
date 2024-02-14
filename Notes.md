@@ -378,6 +378,44 @@ d
   [11.5 – Sets and Bags (Programming in Lua)][4] for details of this approach.
 
 ```lua
+class = require 'middleclass'
+Set = require 'set'
+
+function merge_tables(first, second)
+  for k,v in pairs(second_table) do first_table[k] = v end
+end
+
+Value = class('Value')
+
+function Value:initialize(data, _children)
+  self.data = data
+  if _children == nil then
+    self._prev = Set.empty()
+  else
+    self._prev = Set(_children)
+  end
+end
+
+function Value:__tostring()
+  return 'Value(data = ' .. self.data .. ')'
+end
+
+function Value:__add(other)
+  return Value(self.data + other.data, {self, other})
+end
+
+function Value:__mul(other)
+  return Value(self.data * other.data, {self, other})
+end
+
+a = Value(2.0)
+b = Value(-3.0)
+c = Value(10.0)
+
+d = a * b + c
+
+d._prev
+-- {Value(data = -6.0), Value(data = 10.0)}
 
 ```
 
