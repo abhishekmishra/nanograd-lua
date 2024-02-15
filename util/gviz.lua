@@ -24,7 +24,7 @@ end
 
 --- override the equality operator
 function Node:__eq(other)
-    return self.name == other.name
+    return self.node == other.node
 end
 
 --- tostring metamethod

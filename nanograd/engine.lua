@@ -9,10 +9,22 @@ local Set = require 'util/set'
 --- Declare the class Value
 Value = class('Value')
 
+--- static incrementing identifier
+Value.static._next_id = 0
+
+--- static method to get the next identifier
+function Value.static.next_id()
+    local next = Value.static._next_id
+    Value.static._next_id = Value.static._next_id + 1
+    return next
+end
+
 --- constructor
-function Value:initialize(data, _children, _op)
+function Value:initialize(data, _children, _op, label)
     self.data = data
     self._op = _op or ''
+    self.label = label or ''
+    self.id = Value.next_id()
     if _children == nil then
         self._prev = Set.empty()
     else

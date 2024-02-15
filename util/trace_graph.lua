@@ -32,28 +32,31 @@ local function draw_dot(root)
 
     -- create new graph using gviz.Graph
     local g = gviz.Graph()
+
     for _, node in ipairs(nodes:items()) do
         -- for any value in the graph, create a record node
-        g:add_node(Node(node, {
+        g:add_node(Node(node.id, {
             shape = 'record',
-            label = '{ data ' .. node.data .. '}'
+            label = '{ ' .. node.label .. ' | data ' .. node.data .. '}'
         }))
 
         -- if this value is a result of some operation, create an op node for it
         if node._op ~= '' then
-            g:add_node(Node(node._op, {
+            g:add_node(Node(tostring(node.id) .. node._op, {
                 shape = 'ellipse',
                 label = node._op,
                 fontsize = 18,
                 color = 'blue'
             }))
-            g:add_edge(node._op, node)
+            g:add_edge(tostring(node.id) .. node._op, node.id)
         end
     end
 
     -- connect first node to the op node of the second node in each edge
     for _, edge in ipairs(edges:items()) do
-        g:add_edge(edge[1], edge[2]._op ~= '' and edge[2]._op or edge[2])
+        g:add_edge(edge[1].id,
+            edge[2]._op ~= '' and
+            (tostring(edge[2].id) .. edge[2]._op) or edge[2].id)
     end
 
     return g
@@ -68,11 +71,11 @@ end
 
 --- create a png graph of the Value object
 -- using the draw_dot function
-    local function draw_dot_png(root, filename)
-        local g = draw_dot(root)
-        g:generate_png(filename)
-    end
-    
+local function draw_dot_png(root, filename)
+    local g = draw_dot(root)
+    g:generate_png(filename)
+end
+
 return {
     trace = trace,
     draw_dot = draw_dot,
