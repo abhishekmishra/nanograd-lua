@@ -465,7 +465,18 @@ d._op
 
 * Since the expressions we write will get larger, Andrej introduces some code to
 generate a GraphViz plot of the expression graph, using a python libary.
-* *Lua Note*: Since 
+* *Lua Note*: Since there is no cross-platform graphviz library available, I've
+  implemented a small utility which calls the `graphviz dot` program with a
+  temporary dot file and generates the graph in png format.
+
+```lua
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(d, "plots/plot1-graph_of_expr.png")
+
+```
+
+![plot#1: graph of the expression](plots/plot1-graph_of_expr.png)
+
 
 # 6. References
 
