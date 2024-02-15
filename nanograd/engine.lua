@@ -22,6 +22,7 @@ end
 --- constructor
 function Value:initialize(data, _children, _op, label)
     self.data = data
+    self.grad = 0
     self._op = _op or ''
     self.label = label or ''
     self.id = Value.next_id()

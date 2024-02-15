@@ -23,6 +23,8 @@ Abhishek Mishra
   - [5.4. Children of Value Objects](#54-children-of-value-objects)
   - [5.5. Storing the Operation](#55-storing-the-operation)
   - [5.6. Visualizing the Expression Graph](#56-visualizing-the-expression-graph)
+  - [5.7. Label for Each Value Node in the Graph](#57-label-for-each-value-node-in-the-graph)
+  - [5.8. Recap so far](#58-recap-so-far)
 - [6. References](#6-references)
 - [7. Appendix](#7-appendix)
 
@@ -477,6 +479,152 @@ trace_graph.draw_dot_png(d, "plots/plot1-graph_of_expr.png")
 
 ![plot#1: graph of the expression](plots/plot1-graph_of_expr.png)
 
+## 5.7. Label for Each Value Node in the Graph
+
+* To improve the display of the expression graph, we will add a label to each
+  node to help us identify the variable in at each node.
+* We will also use a slightly larger expression this time.
+
+```lua
+class = require 'lib/middleclass'
+Set = require 'util/set'
+
+--- Declare the class Value
+Value = class('Value')
+
+--- static incrementing identifier
+Value.static._next_id = 0
+
+--- static method to get the next identifier
+function Value.static.next_id()
+    local next = Value.static._next_id
+    Value.static._next_id = Value.static._next_id + 1
+    return next
+end
+
+--- constructor
+function Value:initialize(data, _children, _op, label)
+    self.data = data
+    self._op = _op or ''
+    self.label = label or ''
+    self.id = Value.next_id()
+    if _children == nil then
+        self._prev = Set.empty()
+    else
+        self._prev = Set(_children)
+    end
+end
+
+--- string representation of the Value object
+function Value:__tostring()
+    return 'Value(data = ' .. self.data .. ')'
+end
+
+--- add this Value object with another
+-- using metamethod _add
+function Value:__add(other)
+    return Value(self.data + other.data, { self, other }, '+')
+end
+
+--- multiply this Value object with another
+-- using metamethod _mul
+function Value:__mul(other)
+    return Value(self.data * other.data, { self, other }, '*')
+end
+
+a = Value(2.0)
+a.label = 'a'
+b = Value(-3.0)
+b.label = 'b'
+c = Value(10.0)
+c.label = 'c'
+
+e = a * b
+e.label = 'e'
+
+d = e + c
+d.label = 'd'
+
+f = Value(-2.0)
+f.label = 'f'
+
+L = d * f
+L.label = 'L'
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(L, "plots/plot2-expr_with_label.png")
+
+```
+
+![plot#2: graph of the expression with labels](plots/plot2-expr_with_label.png)
+
+## 5.8. Recap so far
+
+* We're able to build out mathematical expressions with `+` and `*`.
+* Expressions are scalar valued.
+* We can do a forward pass and calculate the values at each node of the
+  expression.
+* We have inputs like a, b, c and output L.
+* We can visualize the forward pass in a graph.
+
+*Next Steps:* We're going to start at the end of the expression (the output) and
+calculate the gradient/derivative of each output w.r.t each node. This is called
+**back-propagation**. So in the example above we will calculate dL/dL, dL/df,
+dL/dd etc.
+
+In the neural network setting we're very interested in the derivative of the
+loss function L w.r.t the weights of the neural network. So for now there are
+these internal nodes, which will eventually be the weights of a neural network.
+And we will need to know how those weights are impacting the loss function.
+ 
+We will usually not be interested in the derivative of the loss function w.r.t
+the input data nodes, because the data is fixed. We will iterate upon the
+weights of the neural network.
+
+So in the next steps we will change the `Value` class to maintain the derivative
+of the loss w.r.t to this value. And this member of the `Value` class will be
+called `grad`. The value of `grad` initial will be 0, which means no effect. At
+initialization we assume every value does not impact the output/loss. Changing
+this variable does not change the loss.
+
+```lua
+--- constructor
+function Value:initialize(data, _children, _op, label)
+    self.data = data
+    self.grad = 0
+    self._op = _op or ''
+    self.label = label or ''
+    self.id = Value.next_id()
+    if _children == nil then
+        self._prev = Set.empty()
+    else
+        self._prev = Set(_children)
+    end
+end
+
+a = Value(2.0)
+a.label = 'a'
+b = Value(-3.0)
+b.label = 'b'
+c = Value(10.0)
+c.label = 'c'
+
+e = a * b
+e.label = 'e'
+
+d = e + c
+d.label = 'd'
+
+f = Value(-2.0)
+f.label = 'f'
+
+L = d * f
+L.label = 'L'
+
+trace_graph.draw_dot_png(L, "plots/plot3-with_grad.png")
+
+```
 
 # 6. References
 

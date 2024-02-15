@@ -26,9 +26,9 @@ f.label = 'f'
 local L = d * f
 L.label = 'L'
 
-print(L, L._op, L._prev)
+-- print(L, L._op, L._prev)
 
--- local g = trace_graph.draw_dot(L)
--- print(g:generate_dot())
+local g = trace_graph.draw_dot(L)
+print(g:generate_dot())
 trace_graph.draw_dot_png(L, "test/test_trace_graph.png")
--- trace_graph.draw_dot_svg(L, "test/test_trace_graph.svg")
+trace_graph.draw_dot_svg(L, "test/test_trace_graph.svg")

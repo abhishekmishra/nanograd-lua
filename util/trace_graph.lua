@@ -35,10 +35,16 @@ local function draw_dot(root)
 
     for _, node in ipairs(nodes:items()) do
         -- for any value in the graph, create a record node
-        g:add_node(Node(node.id, {
+        local n = Node(node.id, {
             shape = 'record',
             label = '{ ' .. node.label .. ' | data ' .. node.data .. '}'
-        }))
+        })
+        if node.grad then
+            n.label = '{ ' .. node.label .. 
+            ' | data ' .. node.data ..
+            ' | grad ' .. node.grad .. '}'
+        end
+        g:add_node(n)
 
         -- if this value is a result of some operation, create an op node for it
         if node._op ~= '' then
