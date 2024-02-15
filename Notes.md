@@ -626,6 +626,8 @@ trace_graph.draw_dot_png(L, "plots/plot3-with_grad.png")
 
 ```
 
+![plot#3: graph of the expression with labels](plots/plot3-with_grad.png)
+
 # 6. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
