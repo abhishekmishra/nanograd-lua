@@ -6,7 +6,7 @@
 -- Author: Abhishek Mishra
 -- Date: 14/02/2024
 
-local class = require 'middleclass'
+local class = require 'lib/middleclass'
 
 -- Declare the class Set
 Set = class('Set')
