@@ -25,6 +25,7 @@ Abhishek Mishra
   - [5.6. Visualizing the Expression Graph](#56-visualizing-the-expression-graph)
   - [5.7. Label for Each Value Node in the Graph](#57-label-for-each-value-node-in-the-graph)
   - [5.8. Recap so far](#58-recap-so-far)
+- [Part 4: Manual Back-propagation](#part-4-manual-back-propagation)
 - [6. References](#6-references)
 - [7. Appendix](#7-appendix)
 
@@ -628,6 +629,16 @@ trace_graph.draw_dot_png(L, "plots/plot3-with_grad.png")
 
 ![plot#3: graph of the expression with labels](plots/plot3-with_grad.png)
 
+# Part 4: Manual Back-propagation
+
+* We can start with `L` in the expression above. And calculate the derivative of
+  L w.r.t L, which will be one. This can also be demonstrated by calculating
+  `((L + h) - L) / h`, which will be `h/h` i.e. 1.
+* Now we can write a function to calculate the derivative of `L` w.r.t the other
+  `Values` and write them down.
+
+```lua
+```
 # 6. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
