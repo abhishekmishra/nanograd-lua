@@ -26,6 +26,7 @@ Abhishek Mishra
   - [5.7. Label for Each Value Node in the Graph](#57-label-for-each-value-node-in-the-graph)
   - [5.8. Recap so far](#58-recap-so-far)
 - [Part 4: Manual Back-propagation](#part-4-manual-back-propagation)
+  - [Change Values of Inputs to Change Loss](#change-values-of-inputs-to-change-loss)
 - [6. References](#6-references)
 - [7. Appendix](#7-appendix)
 
@@ -636,14 +637,149 @@ trace_graph.draw_dot_png(L, "plots/plot3-with_grad.png")
   `((L + h) - L) / h`, which will be `h/h` i.e. 1.
 * Now we can write a function to calculate the derivative of `L` w.r.t the other
   `Values` and write them down.
+ 
+```lua
+function lol()
+  local a, b, c, d, e, f, L
+  local h = 0.001
+
+  a = Value(2.0)
+  a.label = 'a'
+  b = Value(-3.0)
+  b.label = 'b'
+  c = Value(10.0)
+  c.label = 'c'
+  e = a * b
+  e.label = 'e'
+  d = e + c
+  d.label = 'd'
+  f = Value(-2.0)
+  f.label = 'f'
+  L = d * f
+  L.label = 'L'
+  local L1 = L.data
+
+  a = Value(2.0)
+  a.label = 'a'
+  b = Value(-3.0)
+  b.label = 'b'
+  c = Value(10.0)
+  c.label = 'c'
+  e = a * b
+  e.label = 'e'
+  d = e + c
+  d.label = 'd'
+  f = Value(-2.0)
+  f.label = 'f'
+  L = d * f
+  L.label = 'L'
+  local L2 = L.data + h
+
+  print((L2 - L1)/h)
+end
+
+lol()
+-- 1.0000000000003
+```
+
+* Now let's set dL/dL to 1.0 and redraw the graph
 
 ```lua
+L.grad = 1.0
+trace_graph.draw_dot_png(L, "plots/plot4-L_grad.png")
+
 ```
+
+![plot#4: L.grad set](plots/plot4-L_grad.png)
+
+* Now let's calculate dL/df and dL/dd.
+* since L = f * d, then by rules of differentiation we have
+  - dL/df = d = 4.0, and
+  - dL/dd = f = -2.0
+* We can also modify the above function to apply `+h` to d and f in turn to
+  calculate this programmatically.
+
+```lua
+d.grad = -2.0
+f.grad = 4.0
+trace_graph.draw_dot_png(L, "plots/plot5-f_and_d_grad.png")
+
+```
+
+![plot#5: f.grad and d.grad set](plots/plot5-f_and_d_grad.png)
+
+* Now going back in the network let's calculate dL/dc and dL/de.
+* Here we will use the rule that `df/dx = df/dy * dy/dx`. This is the
+  **chain rule of calculus**.
+* See the [Intuitive explanation of the chain rule][5].
+* Since `dL/dd` is known then if we can calculate `dd/dc` then we can get
+  `dL/dc = dL/dd * dd/dc`.
+* We can use similar reasoning for `dL/de`.
+* `dd/dc` and `dd/de` are **local gradients**.
+* Given `d = c + e`, as we can see from the expression, `dd/dc = 1.0` and also
+  `dd/de = 1.0`.
+* And so `dL/dc = dL/dd * dd/dc = -2.0 * 1.0 = -2.0`.
+* And `dL/de = dL/dd * dd/de = -2.0 * 1.0 = -2.0`.
+
+```lua
+c.grad = -2.0
+e.grad = -2.0
+trace_graph.draw_dot_png(L, "plots/plot6-c_and_e_grad.png")
+
+```
+
+![plot#6: c.grad and e.grad set](plots/plot6-c_and_e_grad.png)
+
+* We have one more layer remaining to go back to.
+* Lets calculate the gradient for `a` and `b`.
+* We will apply the chain rule again.
+* Since `e = a * b`, `de/db = a` and `de/da = b`.
+* Since `dL/de = -2.0` and `de/da = b = -3.0`, therefore
+  `dL/da = dL/de * de/da = -2.0 * -3.0 = 6.0`
+* Similarly `dL/db = dL/de * de/db = -2.0 * a  = -2.0 * 2.0 = -4.0`.
+
+```lua
+a.grad = 6.0
+b.grad = -4.0
+trace_graph.draw_dot_png(L, "plots/plot7-a_and_b_grad.png")
+
+```
+![plot#7: a.grad and b.grad set](plots/plot7-a_and_b_grad.png)
+
+*Note:* At each step above, Andrej also modifies the function lol() and
+verifies the derivative value programmatically. I haven't repeated the code as
+it is self explanatory but quite verbose.
+
+* At this point we can consider what back-propagation is, it is the multiplying
+  the derivatives backward through the expression graph by applying the chain
+  rule, till we reach the leaf nodes, and all nodes have their gradient/
+  derivative applied.
+
+## Change Values of Inputs to Change Loss
+
+* Now that we know the gradients at each input, we can verify that when we
+  change the inputs by a small amount **nudge it**, then we can creat a small
+  change in the `L`.
+
+```lua
+a.data = a.data + (0.01 * a.grad)
+b.data = b.data + (0.01 * b.grad)
+c.data = c.data + (0.01 * c.grad)
+d.data = d.data + (0.01 * d.grad)
+e = a * b
+d = e + c
+L = d * f
+L.data
+-7.4352
+```
+
+
+
 # 6. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
 [3]: https://github.com/kikito/middleclass
 [4]: https://www.lua.org/pil/11.5.html
-
+[5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
 # 7. Appendix
