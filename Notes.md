@@ -21,10 +21,10 @@ Abhishek Mishra
   - [5.2. Addition of Value Objects](#52-addition-of-value-objects)
   - [5.3. Multiplication of Value Objects](#53-multiplication-of-value-objects)
   - [5.4. Children of Value Objects](#54-children-of-value-objects)
-  - [Storing the Operation](#storing-the-operation)
-  - [Visualizing the Expression Graph](#visualizing-the-expression-graph)
+  - [5.5. Storing the Operation](#55-storing-the-operation)
+  - [5.6. Visualizing the Expression Graph](#56-visualizing-the-expression-graph)
 - [6. References](#6-references)
-- [Appendix](#appendix)
+- [7. Appendix](#7-appendix)
 
 # 1. About these Notes
 
@@ -418,7 +418,7 @@ d._prev
 
 ```
 
-## Storing the Operation
+## 5.5. Storing the Operation
 
 * In addition to the children for a Value, we will also store the operation which
 was used to generate the Value.
@@ -461,7 +461,7 @@ d._op
 -- +
 ```
 
-## Visualizing the Expression Graph
+## 5.6. Visualizing the Expression Graph
 
 * Since the expressions we write will get larger, Andrej introduces some code to
 generate a GraphViz plot of the expression graph, using a python libary.
@@ -485,4 +485,4 @@ trace_graph.draw_dot_png(d, "plots/plot1-graph_of_expr.png")
 [3]: https://github.com/kikito/middleclass
 [4]: https://www.lua.org/pil/11.5.html
 
-# Appendix
+# 7. Appendix
