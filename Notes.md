@@ -25,10 +25,10 @@ Abhishek Mishra
   - [5.6. Visualizing the Expression Graph](#56-visualizing-the-expression-graph)
   - [5.7. Label for Each Value Node in the Graph](#57-label-for-each-value-node-in-the-graph)
   - [5.8. Recap so far](#58-recap-so-far)
-- [Part 4: Manual Back-propagation](#part-4-manual-back-propagation)
-  - [Change Values of Inputs to Change Loss](#change-values-of-inputs-to-change-loss)
-- [6. References](#6-references)
-- [7. Appendix](#7-appendix)
+- [6. Part 4: Manual Back-propagation](#6-part-4-manual-back-propagation)
+  - [6.1. Change Values of Inputs to Change Loss](#61-change-values-of-inputs-to-change-loss)
+- [7. References](#7-references)
+- [8. Appendix](#8-appendix)
 
 # 1. About these Notes
 
@@ -630,7 +630,7 @@ trace_graph.draw_dot_png(L, "plots/plot3-with_grad.png")
 
 ![plot#3: graph of the expression with labels](plots/plot3-with_grad.png)
 
-# Part 4: Manual Back-propagation
+# 6. Part 4: Manual Back-propagation
 
 * We can start with `L` in the expression above. And calculate the derivative of
   L w.r.t L, which will be one. This can also be demonstrated by calculating
@@ -755,7 +755,7 @@ it is self explanatory but quite verbose.
   rule, till we reach the leaf nodes, and all nodes have their gradient/
   derivative applied.
 
-## Change Values of Inputs to Change Loss
+## 6.1. Change Values of Inputs to Change Loss
 
 * Now that we know the gradients at each input, we can verify that when we
   change the inputs by a small amount **nudge it**, then we can creat a small
@@ -770,16 +770,16 @@ e = a * b
 d = e + c
 L = d * f
 L.data
--7.4352
+-- -7.4352
 ```
 
 
 
-# 6. References
+# 7. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
 [3]: https://github.com/kikito/middleclass
 [4]: https://www.lua.org/pil/11.5.html
 [5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
-# 7. Appendix
+# 8. Appendix
