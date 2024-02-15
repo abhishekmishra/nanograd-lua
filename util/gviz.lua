@@ -10,13 +10,14 @@ local Set = require 'util/set'
 Node = class('Node')
 
 --- constructor
-function Node:initialize(name, config)
-    self.name = name
+function Node:initialize(node_obj, config)
+    self.node = node_obj
+    self.name = tostring(self.node)
     self.config = config or {}
     self.shape = self.config.shape or 'circle'
     self.color = self.config.color or 'black'
     self.style = self.config.style or 'solid'
-    self.label = self.config.label or name
+    self.label = self.config.label or self.name
     self.fontname = self.config.fontname or 'Arial'
     self.fontsize = self.config.fontsize or 12
 end
@@ -28,7 +29,7 @@ end
 
 --- tostring metamethod
 function Node:__tostring()
-    return self.name
+    return '"' .. self.name .. '"'
 end
 
 --- Declare the Edge class
@@ -42,7 +43,7 @@ end
 
 --- tostring metamethod
 function Edge:__tostring()
-    return tostring(self.from) .. ' -> ' .. tostring(self.to)
+    return '"' .. tostring(self.from) .. '" -> "' .. tostring(self.to) .. '"'
 end
 
 --- override the equality operator
