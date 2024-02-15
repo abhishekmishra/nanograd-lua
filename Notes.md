@@ -16,7 +16,7 @@ Abhishek Mishra
   - [3.2. Derivative at Another Point (x = -3)](#32-derivative-at-another-point-x---3)
   - [3.3. Derivative goes to 0](#33-derivative-goes-to-0)
 - [4. Part 2: A More Complex Case](#4-part-2-a-more-complex-case)
-- [5. Expressions for Neural Networks](#5-expressions-for-neural-networks)
+- [5. Part 3: Expressions for Neural Networks](#5-part-3-expressions-for-neural-networks)
   - [5.1. Core Value Object](#51-core-value-object)
   - [5.2. Addition of Value Objects](#52-addition-of-value-objects)
   - [5.3. Multiplication of Value Objects](#53-multiplication-of-value-objects)
@@ -261,7 +261,7 @@ print('slope = ' .. (d2 - d1)/h)
 * We have some intuitions about how expressions and their derivatives will work.
 * Lets move to neural networks which will have massive expressions.
 
-# 5. Expressions for Neural Networks
+# 5. Part 3: Expressions for Neural Networks
 
 As mentioned neural networks will have massive expressions. So we need some
 datastructure to maintain the massive expressions. And so we will build out the
