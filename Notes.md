@@ -21,7 +21,10 @@ Abhishek Mishra
   - [5.2. Addition of Value Objects](#52-addition-of-value-objects)
   - [5.3. Multiplication of Value Objects](#53-multiplication-of-value-objects)
   - [5.4. Children of Value Objects](#54-children-of-value-objects)
+  - [Storing the Operation](#storing-the-operation)
+  - [Visualizing the Expression Graph](#visualizing-the-expression-graph)
 - [6. References](#6-references)
+- [Appendix](#appendix)
 
 # 1. About these Notes
 
@@ -277,7 +280,7 @@ of the micrograd project.
   in files, and make sure that the variables are marked `local`.
 
 ```lua
-class = require 'middleclass'
+class = require 'lib/middleclass'
 
 -- Declare the class Value
 Value = class('Value') -- 'Value' is the class' name
@@ -308,7 +311,7 @@ like `a + b` where `a` and `b` are values.
   data of two Value objects.
 
 ```lua
-Value = class('Value')
+class = require 'lib/middleclass'
 
 function Value:initialize(data)
   self.data = data
@@ -378,12 +381,8 @@ d
   [11.5 – Sets and Bags (Programming in Lua)][4] for details of this approach.
 
 ```lua
-class = require 'middleclass'
-Set = require 'set'
-
-function merge_tables(first, second)
-  for k,v in pairs(second_table) do first_table[k] = v end
-end
+class = require 'lib/middleclass'
+Set = require 'util/set'
 
 Value = class('Value')
 
@@ -419,9 +418,60 @@ d._prev
 
 ```
 
+## Storing the Operation
+
+* In addition to the children for a Value, we will also store the operation which
+was used to generate the Value.
+* `_op` will be a private variable storing the operation as a string.
+
+```lua
+class = require 'lib/middleclass'
+Set = require 'util/set'
+
+Value = class('Value')
+
+function Value:initialize(data, _children, _op)
+  self.data = data
+  self._op = _op or ''
+  if _children == nil then
+    self._prev = Set.empty()
+  else
+    self._prev = Set(_children)
+  end
+end
+
+function Value:__tostring()
+  return 'Value(data = ' .. self.data .. ')'
+end
+
+function Value:__add(other)
+  return Value(self.data + other.data, {self, other}, '+')
+end
+
+function Value:__mul(other)
+  return Value(self.data * other.data, {self, other}, '*')
+end
+
+a = Value(2.0)
+b = Value(-3.0)
+c = Value(10.0)
+
+d = a * b + c
+d._op
+-- +
+```
+
+## Visualizing the Expression Graph
+
+* Since the expressions we write will get larger, Andrej introduces some code to
+generate a GraphViz plot of the expression graph, using a python libary.
+* *Lua Note*: Since 
+
 # 6. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
 [3]: https://github.com/kikito/middleclass
 [4]: https://www.lua.org/pil/11.5.html
+
+# Appendix
