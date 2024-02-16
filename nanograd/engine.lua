@@ -50,6 +50,13 @@ function Value:__mul(other)
     return Value(self.data * other.data, { self, other }, '*')
 end
 
+--- implement the tanh function for the Value class
+function Value:tanh()
+    local x = self.data
+    local t = (math.exp(2 * x) - 1)/(math.exp(2 * x) + 1)
+    return Value(t, { self }, 'tanh')
+end
+
 -- begin test
 
 -- local a = Value(2.0)

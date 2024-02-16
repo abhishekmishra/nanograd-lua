@@ -29,6 +29,8 @@ Abhishek Mishra
 - [7. Part 5: Single Optimization Step: Nudge Inputs to Change Loss](#7-part-5-single-optimization-step-nudge-inputs-to-change-loss)
 - [8. Part 6: Manual Back-propagation of a Single Neuron](#8-part-6-manual-back-propagation-of-a-single-neuron)
   - [8.1. The tanh function](#81-the-tanh-function)
+  - [tanh support in Value class](#tanh-support-in-value-class)
+  - [Expression for a Neuron](#expression-for-a-neuron)
 - [9. References](#9-references)
 - [10. Appendix](#10-appendix)
 
@@ -860,6 +862,25 @@ plot 'plot8-tanh.data' with linespoints
   $$w_i x_i$$, plus a bias `b`, squashed by an activation function `f`.
 
 $$ f \left( \sum_i w_i x_i + b\right) $$
+
+## tanh support in Value class
+
+* Before we can use the tanh function we need to add support for this in our
+  Value class.
+* Here's what the implementation looks like...
+
+```lua
+function Value:tanh()
+    local x = self.data
+    local t = (math.exp(2 * x) - 1)/(math.exp(2 * x) + 1)
+    return Value(t, { self }, 'tanh')
+end
+```
+
+## Expression for a Neuron
+
+* let's create a neuron expression with inputs, weights, bias and activation
+  function now.
 
 # 9. References
 
