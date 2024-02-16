@@ -779,10 +779,11 @@ L.data
 
 * We're going to do a more useful example of manual backpropagation, for a
   neuron.
-* Andrej refers to an image of a neuron his video which is from the course
+* Andrej refers to an image of a neuron in his video which is from the course
   notes of [CS231n: Convolutional Neural Networks for Visual Recognition][5].
-* He also refers to an image of two-layer neural net - multi-layer perceptrons.
-* I've also included both the images below for reference.
+* He also refers to an image of two-layer neural net - multi-layer perceptrons
+  from the same course notes.
+* I've included both the images below for reference.
 
 ![Mathematical model of a neuron, courtesy CS231N course notes](images/cs231n_neuron_model.jpeg)
 
@@ -808,7 +809,7 @@ L.data
 ## 8.1. The tanh function
 
 * We're going to use the `tanh` for our activation function.
-* *Lua Note:* Lua does not have `tanh` function, so I've implement a simple
+* *Lua Note:* Lua does not have `tanh` function, so I've implemented a simple
   version in the util/tanh.lua.
 
 # 9. References
