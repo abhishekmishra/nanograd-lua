@@ -25,10 +25,12 @@ Abhishek Mishra
   - [5.6. Visualizing the Expression Graph](#56-visualizing-the-expression-graph)
   - [5.7. Label for Each Value Node in the Graph](#57-label-for-each-value-node-in-the-graph)
   - [5.8. Recap so far](#58-recap-so-far)
-- [6. Part 4: Manual Back-propagation](#6-part-4-manual-back-propagation)
-  - [6.1. Change Values of Inputs to Change Loss](#61-change-values-of-inputs-to-change-loss)
-- [7. References](#7-references)
-- [8. Appendix](#8-appendix)
+- [6. Part 4: Manual Back-propagation of an Expression](#6-part-4-manual-back-propagation-of-an-expression)
+- [7. Part 5: Single Optimization Step: Nudge Inputs to Change Loss](#7-part-5-single-optimization-step-nudge-inputs-to-change-loss)
+- [8. Part 6: Manual Back-propagation of a Single Neuron](#8-part-6-manual-back-propagation-of-a-single-neuron)
+  - [8.1. The tanh function](#81-the-tanh-function)
+- [9. References](#9-references)
+- [10. Appendix](#10-appendix)
 
 # 1. About these Notes
 
@@ -630,7 +632,7 @@ trace_graph.draw_dot_png(L, "plots/plot3-with_grad.png")
 
 ![plot#3: graph of the expression with labels](plots/plot3-with_grad.png)
 
-# 6. Part 4: Manual Back-propagation
+# 6. Part 4: Manual Back-propagation of an Expression
 
 * We can start with `L` in the expression above. And calculate the derivative of
   L w.r.t L, which will be one. This can also be demonstrated by calculating
@@ -755,7 +757,7 @@ it is self explanatory but quite verbose.
   rule, till we reach the leaf nodes, and all nodes have their gradient/
   derivative applied.
 
-## 6.1. Change Values of Inputs to Change Loss
+# 7. Part 5: Single Optimization Step: Nudge Inputs to Change Loss
 
 * Now that we know the gradients at each input, we can verify that when we
   change the inputs by a small amount **nudge it**, then we can creat a small
@@ -773,13 +775,49 @@ L.data
 -- -7.4352
 ```
 
+# 8. Part 6: Manual Back-propagation of a Single Neuron
 
+* We're going to do a more useful example of manual backpropagation, for a
+  neuron.
+* Andrej refers to an image of a neuron his video which is from the course
+  notes of [CS231n: Convolutional Neural Networks for Visual Recognition][5].
+* He also refers to an image of two-layer neural net - multi-layer perceptrons.
+* I've also included both the images below for reference.
 
-# 7. References
+![Mathematical model of a neuron, courtesy CS231N course notes](images/cs231n_neuron_model.jpeg)
+
+![Two layer neural net, courtesy CS231N course notes](images/cs231n_neural_net2.jpeg)
+
+**Salient Points**
+* The two-layer networks contains multiple neurons connected to each other.
+* Biologically, neurons are complicated.
+* We have simple mathematical representations/models of them.
+* The image of the single neuron above has the following:
+  * *Inputs* - some input data, there are multiple inputs say xi, where i is a
+    number.
+  * *Synapses* - connecting input data to neuron, that have weights in them.
+    The `wi` are weights. What flows to the cell body are the multiplication of
+    synapse weights with the inputs i.e. `wi * xi`.
+  * *Bias* - the cell body has some bias `b`. This is the *innate*
+    *trigger-happiness(sic)* of the neuron. It is added to the sum of the
+    weighted inputs of the neuron.
+  * *Activation Function* - the weight sum plus bias of the cell are taken
+    through an activation function. This activation function is usually some
+    kind of a *squashing function(sic)* - like a sigmoid, or tanh or similar.
+
+## 8.1. The tanh function
+
+* We're going to use the `tanh` for our activation function.
+* *Lua Note:* Lua does not have `tanh` function, so I've implement a simple
+  version in the util/tanh.lua.
+
+# 9. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
 [3]: https://github.com/kikito/middleclass
 [4]: https://www.lua.org/pil/11.5.html
 [5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
-# 8. Appendix
+[6]: https://cs231n.github.io/neural-networks-1/#bio
+
+# 10. Appendix
