@@ -812,6 +812,55 @@ L.data
 * *Lua Note:* Lua does not have `tanh` function, so I've implemented a simple
   version in the util/tanh.lua.
 
+```lua
+tanh = require('util/tanh')
+
+datfile = io.open('plots/plot8-tanh.data', 'w')
+
+--- print x and tanh(x) as a table
+for x = -5, 5, 0.2 do
+  print(x .. ' ' .. tanh(x))
+  datfile:write(x .. ' ' .. tanh(x) .. '\n')
+end
+
+datfile:close()
+
+-- -5.0 -0.9999092042626
+-- -4.8 -0.99986455170076
+-- -4.6 -0.99979794161218
+-- output snipped
+
+```
+* Here is the gnuplot script to plot the data, followed by the plot.
+* *Salient Points:*
+  * The input as it comes in, the output gets squashed initially.
+  * As the input grows output starts rising quite fast and at some point starts
+    rising linearly.
+  * Finally at a particular value the function starts to plateau again, and
+    then the increase almost stops completely.
+  * Input as it comes in we're going to cap it smoothly at 1, and at the
+    negative side we're going to cap it smoothly to -1.
+
+```gnuplot
+# Image output of size 800x600
+set terminal png size 800,600
+# Output file name
+set output 'plot8.png'
+# Plot title
+set title 'f(x) = tanh(x)'
+# Set the grid
+set grid
+# Plot the data
+plot 'plot8-tanh.data' with linespoints
+```
+
+![tanh(x) plot](plots/plot8.png)
+
+* So finally what comes out of the neuron is the weighted sum of inputs 
+  $$w_i x_i$$, plus a bias `b`, squashed by an activation function `f`.
+
+$$ f \left( \sum_i w_i x_i + b\right) $$
+
 # 9. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
