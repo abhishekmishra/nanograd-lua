@@ -882,6 +882,28 @@ end
 * let's create a neuron expression with inputs, weights, bias and activation
   function now.
 
+```lua
+-- inputs x1, x2
+x1 = Value(2.0); x1.label = 'x1'
+x2 = Value(0.0); x2.label = 'x2'
+-- weights w1, w2
+w1 = Value(-3.0); w1.label = 'w1'
+w2 = Value(1.0); w2.label = 'w2'
+-- bias of the neuron
+b = Value(6.7); b.label = 'b'
+x1w1 = x1 * w1; x1w1.label = 'x1w1'
+x2w2 = x2 * w2; x2w2.label = 'x2w2'
+x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1w1 + x2w2'
+n = x1w1x2w2 + b; n.label = 'n'
+o = n:tanh(); o.label = 'o'
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot9-neuron_expr.png")
+```
+
+![neuron expression plot](plots/plot9-neuron_expr.png)
+
 # 9. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
