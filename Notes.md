@@ -29,8 +29,9 @@ Abhishek Mishra
 - [7. Part 5: Single Optimization Step: Nudge Inputs to Change Loss](#7-part-5-single-optimization-step-nudge-inputs-to-change-loss)
 - [8. Part 6: Manual Back-propagation of a Single Neuron](#8-part-6-manual-back-propagation-of-a-single-neuron)
   - [8.1. The tanh function](#81-the-tanh-function)
-  - [tanh support in Value class](#tanh-support-in-value-class)
-  - [Expression for a Neuron](#expression-for-a-neuron)
+  - [8.2. tanh support in Value class](#82-tanh-support-in-value-class)
+  - [8.3. Expression for a Neuron](#83-expression-for-a-neuron)
+  - [8.4. Backpropagation on a Neuron](#84-backpropagation-on-a-neuron)
 - [9. References](#9-references)
 - [10. Appendix](#10-appendix)
 
@@ -863,7 +864,7 @@ plot 'plot8-tanh.data' with linespoints
 
 $$ f \left( \sum_i w_i x_i + b\right) $$
 
-## tanh support in Value class
+## 8.2. tanh support in Value class
 
 * Before we can use the tanh function we need to add support for this in our
   Value class.
@@ -877,7 +878,7 @@ function Value:tanh()
 end
 ```
 
-## Expression for a Neuron
+## 8.3. Expression for a Neuron
 
 * let's create a neuron expression with inputs, weights, bias and activation
   function now.
@@ -902,7 +903,90 @@ trace_graph = require("util/trace_graph")
 trace_graph.draw_dot_png(o, "plots/plot9-neuron_expr.png")
 ```
 
-![neuron expression plot](plots/plot9-neuron_expr.png)
+## 8.4. Backpropagation on a Neuron
+
+* Andrej sets some specific value of bias, in the previous expression, so that
+  gradients will be easier to calculate.
+* Lets set the same values here:
+
+```lua
+-- inputs x1, x2
+x1 = Value(2.0); x1.label = 'x1'
+x2 = Value(0.0); x2.label = 'x2'
+-- weights w1, w2
+w1 = Value(-3.0); w1.label = 'w1'
+w2 = Value(1.0); w2.label = 'w2'
+-- bias of the neuron
+b = Value(6.8813735870195432); b.label = 'b'
+x1w1 = x1 * w1; x1w1.label = 'x1w1'
+x2w2 = x2 * w2; x2w2.label = 'x2w2'
+x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1w1 + x2w2'
+n = x1w1x2w2 + b; n.label = 'n'
+o = n:tanh(); o.label = 'o'
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot10-neuron_b_changed.png")
+```
+
+![neuron expression plot](plots/plot10-neuron_b_changed.png)
+
+* Lets start out with `o`, the output node. What is `do/do`. The base case,
+  it is 1.
+
+```lua
+o.grad = 1
+```
+
+* To calculate `do/dn`, where `o = tanh(n)` we need to know the derivative of
+  tanh.
+* Derivative of tanh is `1 - tanh^2(x)`.
+* So `do/dn = 1 - (tanh(n) ** 2) = 1 - o**2`
+
+```lua
+n.grad = 1 - (o.data ^ 2)
+n.grad
+-- 0.5
+```
+
+* Lets go one more level back.
+* And we have a plus operation. We know from earlier in our expression analysis
+  that + is just a distributor of the gradient.
+
+```lua
+x1w1x2w2.grad = n.grad
+b.grad = n.grad
+```
+
+* We have another plus next, so we will distribute the gradient again.
+
+```lua
+x2w2.grad = x1w1x2w2.grad
+x1w1.grad = x1w1x2w2.grad
+```
+
+* The next two are `*` nodes. In a multiple/times node, we know that the local
+  derivative of one term is the other term multiplied with the gradient of the
+  result.
+* So setting these we have...
+
+```lua
+x2.grad = w2.data * x2w2.grad
+w2.grad = x2.data * x2d2.grad
+x1.grad = w1.data * x1w1.grad
+w1.grad = x1.data * x1w1.grad
+
+trace_graph.draw_dot_png(o, "plots/plot11-neuron_with_grads.png")
+```
+
+![neuron expression with grads](plots/plot11-neuron_with_grads.png)
+
+* Notice that since `x2 = 0`, therefore the gradient of its weight `w2.grad = 0`
+* This is according to our intuition, because the input is zero, so the result
+  does not impact the next node.
+* So these are the final derivatives.
+
+
 
 # 9. References
 
