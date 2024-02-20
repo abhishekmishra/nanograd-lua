@@ -32,6 +32,11 @@ Abhishek Mishra
   - [8.2. tanh support in Value class](#82-tanh-support-in-value-class)
   - [8.3. Expression for a Neuron](#83-expression-for-a-neuron)
   - [8.4. Backpropagation on a Neuron](#84-backpropagation-on-a-neuron)
+- [Part 7: Backpropagation Implementation](#part-7-backpropagation-implementation)
+  - [\_backward function for \_\_add](#_backward-function-for-__add)
+  - [\_backward function for \_\_mul](#_backward-function-for-__mul)
+  - [\_backward function for tanh](#_backward-function-for-tanh)
+  - [Redoing the backpropagation on the expression using `_backward`](#redoing-the-backpropagation-on-the-expression-using-_backward)
 - [9. References](#9-references)
 - [10. Appendix](#10-appendix)
 
@@ -986,6 +991,123 @@ trace_graph.draw_dot_png(o, "plots/plot11-neuron_with_grads.png")
   does not impact the next node.
 * So these are the final derivatives.
 
+# Part 7: Backpropagation Implementation
+
+* Now that we know how gradients can be calculated manually in the expression
+  graph, we can start to implement this backpropagation of gradients in the
+  `Value` class.
+* We will now have `_backward` a member of the `Value` class which will help
+  us chain the output gradient to the input gradient.
+* By default this will be a function which will do nothing. In micrograd python
+  version this is written as `_backward = lambda: None`.
+* This empty function will be the case for for e.g. the leaf node. For a leaf
+  node there is nothing to backpropagate.
+* But when we are creating a `Value` using one of the supported operations,
+  we would be creating new `Value` objects.
+* Then we will have to define the current `Value` objects gradient.
+* The idea is to propagate the output's gradient to self's gradient and other's 
+  gradient in some way. And how it is propagated is different for each
+  supported operation
+* The pseudocode looks like
+
+```lua
+function _backward()
+  self.grad = ???
+  other.grad = ???
+end
+
+out._backward = _backward
+```
+
+## _backward function for __add
+
+* For e.g. for the add operation `self._grad = 1.0 * out.grad`, and similarly
+  `other._grad = 1.0 * out.grad`.
+* Therefore the newly created `_backward` can be called after all forward
+  pass expression calculations are completed.
+
+## _backward function for __mul
+
+```lua
+function _backward()
+  self.grad = other.grad * out.grad
+  other.grad = self.grad * out.grad
+end
+
+out._backward = _backward
+```
+
+## _backward function for tanh
+
+```lua
+function _backward()
+  self.grad = (1 - t**2) * out.grad
+end
+
+out._backward = _backwa()
+```
+
+## Redoing the backpropagation on the expression using `_backward`
+
+* We will use the `_backward` function on the output node to backpropagate the
+  gradients back through the expression graph.
+* Notice that the grad is set to 0 by default for every `Value` node.
+* Therefore we will set the `grad` of the output node `o` to `1.0` before we
+  start the backpropagation.
+
+```lua
+Value = require('nanograd/engine')
+
+-- inputs x1, x2
+x1 = Value(2.0); x1.label = 'x1'
+x2 = Value(0.0); x2.label = 'x2'
+-- weights w1, w2
+w1 = Value(-3.0); w1.label = 'w1'
+w2 = Value(1.0); w2.label = 'w2'
+-- bias of the neuron
+b = Value(6.8813735870195432); b.label = 'b'
+x1w1 = x1 * w1; x1w1.label = 'x1w1'
+x2w2 = x2 * w2; x2w2.label = 'x2w2'
+x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1w1 + x2w2'
+n = x1w1x2w2 + b; n.label = 'n'
+o = n:tanh(); o.label = 'o'
+
+-- set the grad of o to 1.0
+o.grad = 1.0
+
+-- backpropagate using _backward
+o._backward()
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot12-o_backprop.png")
+```
+
+![o backpropagation result](plots/plot12-o_backprop.png)
+
+* Now let's call the `_backward` on `n` which is the next `Value` node going
+  backward in the expression graph.
+* And then we will call `_backward` on `b`, which if you notice is a leaf node.
+* And then we will call `_backward` on `x1w1x2w2`, followed by `x1w1` and 
+  `x2w2`.
+* Let's make these calls and look at the results
+
+```lua
+n._backward()
+b._backward()
+x1w1x2w2._backward()
+x1w1._backward()
+x2w2._backward()
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot13-all_backprop.png")
+```
+
+![all backpropagation result](plots/plot13-all_backprop.png)
+
+* Notice that the results are exactly as we had before in the manual back-
+  propagation. But now we have done it through the automatic calcualation.
 
 
 # 9. References

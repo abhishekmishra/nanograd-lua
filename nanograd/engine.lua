@@ -25,6 +25,7 @@ function Value:initialize(data, _children, _op, label)
     self.grad = 0
     self._op = _op or ''
     self.label = label or ''
+    self._backward = function() end
     self.id = Value.next_id()
     if _children == nil then
         self._prev = Set.empty()
@@ -41,20 +42,37 @@ end
 --- add this Value object with another
 -- using metamethod _add
 function Value:__add(other)
-    return Value(self.data + other.data, { self, other }, '+')
+    local out = Value(self.data + other.data, { self, other }, '+')
+    local _backward = function()
+        self.grad = 1 * out.grad
+        other.grad = 1 * out.grad
+    end
+    out._backward = _backward
+    return out
 end
 
 --- multiply this Value object with another
 -- using metamethod _mul
 function Value:__mul(other)
-    return Value(self.data * other.data, { self, other }, '*')
+    local out = Value(self.data * other.data, { self, other }, '*')
+    local _backward = function()
+        self.grad = other.data * out.grad
+        other.grad = self.data * out.grad
+    end
+    out._backward = _backward
+    return out
 end
 
 --- implement the tanh function for the Value class
 function Value:tanh()
     local x = self.data
     local t = (math.exp(2 * x) - 1)/(math.exp(2 * x) + 1)
-    return Value(t, { self }, 'tanh')
+    local out = Value(t, { self }, 'tanh')
+    local _backward = function()
+        self.grad = (1 - t * t) * out.grad
+    end
+    out._backward = _backward
+    return out
 end
 
 -- begin test
