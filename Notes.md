@@ -38,6 +38,7 @@ Abhishek Mishra
   - [9.3. \_backward function for tanh](#93-_backward-function-for-tanh)
   - [9.4. Redoing the backpropagation on the expression using `_backward`](#94-redoing-the-backpropagation-on-the-expression-using-_backward)
 - [10. Part 8: Backpropagation for the entire expression graph](#10-part-8-backpropagation-for-the-entire-expression-graph)
+  - [10.1. Implement the `backward` function in `Value` class](#101-implement-the-backward-function-in-value-class)
 - [11. References](#11-references)
 - [12. Appendix](#12-appendix)
 
@@ -1128,8 +1129,115 @@ trace_graph.draw_dot_png(o, "plots/plot13-all_backprop.png")
 * And here I've implemented the same code in lua.
 
 ```lua
+Set = require('util/Set')
+topo = {}
+visited = Set.empty()
+
+function build_topo(v)
+  if not visited:contains(v) then
+    visited:add(v)
+    for _, child in ipairs(v._prev:items()) do
+      build_topo(child)
+    end
+    table.insert(topo, v)
+  end
+end
+
+build_topo(o)
+for _, v in ipairs(topo) do print(v) end
+
+-- Value(data = 2.0)
+-- Value(data = -3.0)
+-- Value(data = -6.0)
+-- Value(data = 0.0)
+-- Value(data = 1.0)
+-- Value(data = 0.0)
+-- Value(data = -6.0)
+-- Value(data = 6.8813735870195)
+-- Value(data = 0.88137358701954)
+-- Value(data = 0.70710678118655)
+```
+
+* Now let's use the topological sort to do what we did manually.
+* We will set the gradient of the output node as 1.
+* Then we will call the `_backward` function on each Value node in the topo
+  sort (but in the reverse order).
+
+```lua
+o.grad = 1
+for i = #topo, 1, -1 do
+    topo[i]._backward()
+end
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot14-using_topo_sort.png")
+```
+
+![backpropagation using topological sort](plots/plot14-using_topo_sort.png)
+
+## 10.1. Implement the `backward` function in `Value` class
+
+* Now we will move this `backward` function into the `Value` class like so...
+
+```lua
+--- implement the backpropagation for the Value
+function Value:backward()
+    local topo = {}
+    local visited = Set.empty()
+
+    local function build_topo(v)
+      if not visited:contains(v) then
+        visited:add(v)
+        for _, child in ipairs(v._prev:items()) do
+          build_topo(child)
+        end
+        table.insert(topo, v)
+      end
+    end
+
+    build_topo(self)
+
+    -- visit each node in the topological sort (in the reverse order)
+    -- and call the _backward function on each Value
+    self.grad = 1
+    for i = #topo, 1, -1 do
+        topo[i]._backward()
+    end
+end
+```
+
+* And finally we can just setup the neuron expression and call `o.backward` to
+  get the gradients.
+
+```lua
+Value = require('nanograd/engine')
+
+-- inputs x1, x2
+x1 = Value(2.0); x1.label = 'x1'
+x2 = Value(0.0); x2.label = 'x2'
+-- weights w1, w2
+w1 = Value(-3.0); w1.label = 'w1'
+w2 = Value(1.0); w2.label = 'w2'
+-- bias of the neuron
+b = Value(6.8813735870195432); b.label = 'b'
+x1w1 = x1 * w1; x1w1.label = 'x1w1'
+x2w2 = x2 * w2; x2w2.label = 'x2w2'
+x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1w1 + x2w2'
+n = x1w1x2w2 + b; n.label = 'n'
+o = n:tanh(); o.label = 'o'
+
+-- backpropagation
+o:backward()
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot15-o_backprop_using_backward.png")
 
 ```
+
+![backpropagation using o:backward](plots/plot15-o_backprop_using_backward.png)
+
 
 # 11. References
 

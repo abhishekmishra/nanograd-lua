@@ -75,6 +75,31 @@ function Value:tanh()
     return out
 end
 
+--- implement the backpropagation for the Value
+function Value:backward()
+    local topo = {}
+    local visited = Set.empty()
+
+    local function build_topo(v)
+      if not visited:contains(v) then
+        visited:add(v)
+        for _, child in ipairs(v._prev:items()) do
+          build_topo(child)
+        end
+        table.insert(topo, v)
+      end
+    end
+
+    build_topo(self)
+
+    -- visit each node in the topological sort (in the reverse order)
+    -- and call the _backward function on each Value
+    self.grad = 1
+    for i = #topo, 1, -1 do
+        topo[i]._backward()
+    end
+end
+
 -- begin test
 
 -- local a = Value(2.0)
