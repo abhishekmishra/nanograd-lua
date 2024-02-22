@@ -49,6 +49,7 @@ Abhishek Mishra
   - [12.3. Adding support for division and subtraction](#123-adding-support-for-division-and-subtraction)
   - [12.4. Sample expression with tanh expanded](#124-sample-expression-with-tanh-expanded)
 - [13. Part 11: The same example in PyTorch](#13-part-11-the-same-example-in-pytorch)
+- [Part 12: Building a neural net library (multi-layer perceptron)](#part-12-building-a-neural-net-library-multi-layer-perceptron)
 - [14. References](#14-references)
 - [15. Appendix](#15-appendix)
 
@@ -1665,6 +1666,62 @@ trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
 * This section of the video begins around 1H35M, and I will not repeat the whole
   thing here.
 * An example of PyTorch usage is also provided in the [tests for micrograd][9].
+
+# Part 12: Building a neural net library (multi-layer perceptron)
+
+* We have created a mechanism to create quite complex expression.
+* And now we can use this mechanism to create neurons and then layers of
+  neurons eventually leading up to neural networks.
+* As neural networks are just a special class of mathematical expressions.
+* So we will build a neural net piece by piece, and eventually we will build
+  a 'two layer multi-layer perceptron'.
+* Lets start with a single neuron.
+* We will build a neuron that subscribes to the PyTorch API.
+* Just like we matched the PyTorch API on the backprop side, we will try to do
+  the same on the neural network.
+
+```lua
+class = require 'lib/middleclass'
+Value = require 'nanograd/engine'
+
+Neuron = class('Neuron')
+
+--- constructor of a Neuron
+-- @param nin number of inputs
+function Neuron:initialize(nin)
+    --- create a random number in the range [-1, 1]
+    local function rand_float()
+        return (math.random() - 0.5) * 2
+    end
+
+    -- create a table of random weights
+    self.w = {}
+    for _ = 1, nin do
+        table.insert(self.w, Value(rand_float()))
+    end
+
+    -- create a random bias
+    self.b = Value(rand_float())
+end
+
+--- forward pass of the Neuron
+-- calculate the activation and then apply the activation function
+-- which in our case is the tanh function
+-- @param x input vector
+function Neuron:__call(x)
+    local act = self.b
+    for i = 1, #self.w do
+        act = act + self.w[i] * x[i]
+    end
+    local out = act:tanh()
+    return out
+end
+
+x = {2.0, 3.0}
+n = Neuron(2)
+n(x)
+-- Expected output: A Value object with value in the range [-1, 1]
+```
 
 # 14. References
 
