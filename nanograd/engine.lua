@@ -44,8 +44,8 @@ end
 function Value:__add(other)
     local out = Value(self.data + other.data, { self, other }, '+')
     local _backward = function()
-        self.grad = 1 * out.grad
-        other.grad = 1 * out.grad
+        self.grad = self.grad + (1 * out.grad)
+        other.grad = other.grad + (1 * out.grad)
     end
     out._backward = _backward
     return out
@@ -56,8 +56,8 @@ end
 function Value:__mul(other)
     local out = Value(self.data * other.data, { self, other }, '*')
     local _backward = function()
-        self.grad = other.data * out.grad
-        other.grad = self.data * out.grad
+        self.grad = self.grad + (other.data * out.grad)
+        other.grad = other.grad + (self.data * out.grad)
     end
     out._backward = _backward
     return out
@@ -66,10 +66,10 @@ end
 --- implement the tanh function for the Value class
 function Value:tanh()
     local x = self.data
-    local t = (math.exp(2 * x) - 1)/(math.exp(2 * x) + 1)
+    local t = (math.exp(2 * x) - 1) / (math.exp(2 * x) + 1)
     local out = Value(t, { self }, 'tanh')
     local _backward = function()
-        self.grad = (1 - t * t) * out.grad
+        self.grad = self.grad + ((1 - t * t) * out.grad)
     end
     out._backward = _backward
     return out
@@ -81,13 +81,13 @@ function Value:backward()
     local visited = Set.empty()
 
     local function build_topo(v)
-      if not visited:contains(v) then
-        visited:add(v)
-        for _, child in ipairs(v._prev:items()) do
-          build_topo(child)
+        if not visited:contains(v) then
+            visited:add(v)
+            for _, child in ipairs(v._prev:items()) do
+                build_topo(child)
+            end
+            table.insert(topo, v)
         end
-        table.insert(topo, v)
-      end
     end
 
     build_topo(self)

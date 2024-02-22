@@ -39,6 +39,10 @@ Abhishek Mishra
   - [9.4. Redoing the backpropagation on the expression using `_backward`](#94-redoing-the-backpropagation-on-the-expression-using-_backward)
 - [10. Part 8: Backpropagation for the entire expression graph](#10-part-8-backpropagation-for-the-entire-expression-graph)
   - [10.1. Implement the `backward` function in `Value` class](#101-implement-the-backward-function-in-value-class)
+- [Part 9: Fixing backprop bug when using a node multiple times.](#part-9-fixing-backprop-bug-when-using-a-node-multiple-times)
+  - [A longer expression](#a-longer-expression)
+  - [Solution for the bug](#solution-for-the-bug)
+  - [Examples fixed](#examples-fixed)
 - [11. References](#11-references)
 - [12. Appendix](#12-appendix)
 
@@ -1240,6 +1244,219 @@ trace_graph.draw_dot_png(o, "plots/plot15-o_backprop_using_backward.png")
 
 ![backpropagation using o:backward](plots/plot15-o_backprop_using_backward.png)
 
+# Part 9: Fixing backprop bug when using a node multiple times.
+
+* We have a bug in the existing implemetation of backpropagation which only
+  surfaces in certain cases.
+* If we reuse the same node multiple times in the expression, it's gradient
+  is calculated incorrectly.
+* And this incorrect value is propagated through the rest of the graph.
+* Here's an example of the bug.
+  
+```lua
+Value = require('nanograd/engine')
+
+a = Value(3.0); a.label = 'a'
+b = a + a; b.label = 'b'
+b:backward()
+
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(b, "plots/plot16-backprop_bug_1.png")
+```
+
+![backpropagation bug example#1](plots/plot16-backprop_bug_1.png)
+
+* There are two `a` nodes in the graph above but they are on top of another.
+* And notice the gradients calculated for `a` and `b`.
+* The grad for `b` is correctly set to 1.
+* However since `b = f(a) = 2 * a`, therefore `f'(a) = db/da = 2`.
+* But the grad of `a` is incorrectly marked 1.
+* Now this occurs because of these two lines in the `_add` function of `Value`
+
+```lua
+  self.grad = 1 * out.grad
+  other.grad = 1 * out.grad
+```
+
+* Even though in the case of `b = a + a`, both self and other are the same node,
+  notice that their grads are overwritten by the two lines to 1.
+
+## A longer expression
+
+* Lets use a longer more complicated expression to demonstrate the bug.
+
+```lua
+a = Value(-2.0); a.label = 'a'
+b = Value(3.0); b.label = 'b'
+
+d = a * b; d.label = 'd'
+e = a + b; e.label = 'e'
+f = d * e; f.label = 'f'
+
+f:backward()
+
+trace_graph.draw_dot_png(f, "plots/plot17-backprop_bug_2.png")
+```
+
+![backpropagation bug example#2](plots/plot17-backprop_bug_2.png)
+
+* You can see that the `a` and `b` nodes are used more than once in this
+  expression.
+* And this graph also has the same issue as the expression in the previous
+  example.
+* While backpropagating, we will visit `b` and `a` more than once, and each
+  time their `grad` value will be overwritten. Thus resulting in incorrect
+  values.
+
+## Solution for the bug
+
+* We need to fix the overwriting of the gradients.
+* See the ["Multivariable chain rule"][7], we need to accumulate the gradients
+  using addition instead of replacing them.
+* Therefore the solution to the bug is simple, we need to change the two lines
+  which replace `self.grad` and `other.grad` to accumulate instead of replace
+  values.
+
+```lua
+  self.grad = self.grad + (1 * out.grad)
+  other.grad = other.grad + (1 * out.grad)
+```
+
+* We need to make these changes/fixes in every `_backward` internal function,
+  and then we have the gradients accumulated correctly.
+
+```lua
+--- Declare the class Value
+Value = class('Value')
+
+--- static incrementing identifier
+Value.static._next_id = 0
+
+--- static method to get the next identifier
+function Value.static.next_id()
+    local next = Value.static._next_id
+    Value.static._next_id = Value.static._next_id + 1
+    return next
+end
+
+--- constructor
+function Value:initialize(data, _children, _op, label)
+    self.data = data
+    self.grad = 0
+    self._op = _op or ''
+    self.label = label or ''
+    self._backward = function() end
+    self.id = Value.next_id()
+    if _children == nil then
+        self._prev = Set.empty()
+    else
+        self._prev = Set(_children)
+    end
+end
+
+--- string representation of the Value object
+function Value:__tostring()
+    return 'Value(data = ' .. self.data .. ')'
+end
+
+--- add this Value object with another
+-- using metamethod _add
+function Value:__add(other)
+    local out = Value(self.data + other.data, { self, other }, '+')
+    local _backward = function()
+        self.grad = self.grad + (1 * out.grad)
+        other.grad = other.grad + (1 * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+--- multiply this Value object with another
+-- using metamethod _mul
+function Value:__mul(other)
+    local out = Value(self.data * other.data, { self, other }, '*')
+    local _backward = function()
+        self.grad = self.grad + (other.data * out.grad)
+        other.grad = other.grad + (self.data * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+--- implement the tanh function for the Value class
+function Value:tanh()
+    local x = self.data
+    local t = (math.exp(2 * x) - 1) / (math.exp(2 * x) + 1)
+    local out = Value(t, { self }, 'tanh')
+    local _backward = function()
+        self.grad = self.grad + ((1 - t * t) * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+--- implement the backpropagation for the Value
+function Value:backward()
+    local topo = {}
+    local visited = Set.empty()
+
+    local function build_topo(v)
+        if not visited:contains(v) then
+            visited:add(v)
+            for _, child in ipairs(v._prev:items()) do
+                build_topo(child)
+            end
+            table.insert(topo, v)
+        end
+    end
+
+    build_topo(self)
+
+    -- visit each node in the topological sort (in the reverse order)
+    -- and call the _backward function on each Value
+    self.grad = 1
+    for i = #topo, 1, -1 do
+        topo[i]._backward()
+    end
+end
+```
+
+## Examples fixed
+
+* We can run the previous examples and see that the bug is now fixed.
+
+```lua
+Value = require('nanograd/engine')
+
+a = Value(3.0); a.label = 'a'
+b = a + a; b.label = 'b'
+b:backward()
+
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(b, "plots/plot18-fixed_example1.png")
+
+```
+
+![backpropagation fixed example#1](plots/plot18-fixed_example1.png)
+
+* We can see in the graph above that the gradient at `a` is now
+  correctly set to `2`.
+* Similarly for the longer expression in the previous section.
+
+```lua
+a = Value(-2.0); a.label = 'a'
+b = Value(3.0); b.label = 'b'
+
+d = a * b; d.label = 'd'
+e = a + b; e.label = 'e'
+f = d * e; f.label = 'f'
+
+f:backward()
+
+trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
+```
+
+![backpropagation fixed example#2](plots/plot19-fixed_example2.png)
 
 # 11. References
 
@@ -1249,5 +1466,6 @@ trace_graph.draw_dot_png(o, "plots/plot15-o_backprop_using_backward.png")
 [4]: https://www.lua.org/pil/11.5.html
 [5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
 [6]: https://cs231n.github.io/neural-networks-1/#bio
+[7]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
 
 # 12. Appendix
