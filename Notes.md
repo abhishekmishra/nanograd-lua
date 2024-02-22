@@ -32,13 +32,14 @@ Abhishek Mishra
   - [8.2. tanh support in Value class](#82-tanh-support-in-value-class)
   - [8.3. Expression for a Neuron](#83-expression-for-a-neuron)
   - [8.4. Backpropagation on a Neuron](#84-backpropagation-on-a-neuron)
-- [Part 7: Backpropagation Implementation](#part-7-backpropagation-implementation)
-  - [\_backward function for \_\_add](#_backward-function-for-__add)
-  - [\_backward function for \_\_mul](#_backward-function-for-__mul)
-  - [\_backward function for tanh](#_backward-function-for-tanh)
-  - [Redoing the backpropagation on the expression using `_backward`](#redoing-the-backpropagation-on-the-expression-using-_backward)
-- [9. References](#9-references)
-- [10. Appendix](#10-appendix)
+- [9. Part 7: Backpropagation Implementation](#9-part-7-backpropagation-implementation)
+  - [9.1. \_backward function for \_\_add](#91-_backward-function-for-__add)
+  - [9.2. \_backward function for \_\_mul](#92-_backward-function-for-__mul)
+  - [9.3. \_backward function for tanh](#93-_backward-function-for-tanh)
+  - [9.4. Redoing the backpropagation on the expression using `_backward`](#94-redoing-the-backpropagation-on-the-expression-using-_backward)
+- [10. Part 8: Backpropagation for the entire expression graph](#10-part-8-backpropagation-for-the-entire-expression-graph)
+- [11. References](#11-references)
+- [12. Appendix](#12-appendix)
 
 # 1. About these Notes
 
@@ -991,7 +992,7 @@ trace_graph.draw_dot_png(o, "plots/plot11-neuron_with_grads.png")
   does not impact the next node.
 * So these are the final derivatives.
 
-# Part 7: Backpropagation Implementation
+# 9. Part 7: Backpropagation Implementation
 
 * Now that we know how gradients can be calculated manually in the expression
   graph, we can start to implement this backpropagation of gradients in the
@@ -1019,14 +1020,14 @@ end
 out._backward = _backward
 ```
 
-## _backward function for __add
+## 9.1. _backward function for __add
 
 * For e.g. for the add operation `self._grad = 1.0 * out.grad`, and similarly
   `other._grad = 1.0 * out.grad`.
 * Therefore the newly created `_backward` can be called after all forward
   pass expression calculations are completed.
 
-## _backward function for __mul
+## 9.2. _backward function for __mul
 
 ```lua
 function _backward()
@@ -1037,7 +1038,7 @@ end
 out._backward = _backward
 ```
 
-## _backward function for tanh
+## 9.3. _backward function for tanh
 
 ```lua
 function _backward()
@@ -1047,7 +1048,7 @@ end
 out._backward = _backwa()
 ```
 
-## Redoing the backpropagation on the expression using `_backward`
+## 9.4. Redoing the backpropagation on the expression using `_backward`
 
 * We will use the `_backward` function on the output node to backpropagate the
   gradients back through the expression graph.
@@ -1110,7 +1111,27 @@ trace_graph.draw_dot_png(o, "plots/plot13-all_backprop.png")
   propagation. But now we have done it through the automatic calcualation.
 
 
-# 9. References
+# 10. Part 8: Backpropagation for the entire expression graph
+
+* When we do the backpropagation by calling the `_backward` function manually
+  we're laying out the expression graph and calling the function starting from
+  the output node and going left-wards (backwards) in the graph.
+* And we cannot initial the backpropagation of the output node unless all the
+  values in the expressions have been calculated upto the output node.
+* All the dependencies of a node should have been calculated before we can
+  call `_backward` on it.
+* The way we achieve this by doing something called **Topological Sort**.
+* **Topological Sort** is the laying out of a graph such that all the edges
+  are going in one direction say left-to-right.
+* Andrej suggests reading more about the topic, but simply provides an
+  implementation for the sort in python.
+* And here I've implemented the same code in lua.
+
+```lua
+
+```
+
+# 11. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -1119,4 +1140,4 @@ trace_graph.draw_dot_png(o, "plots/plot13-all_backprop.png")
 [5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
 [6]: https://cs231n.github.io/neural-networks-1/#bio
 
-# 10. Appendix
+# 12. Appendix
