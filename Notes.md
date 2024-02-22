@@ -49,9 +49,9 @@ Abhishek Mishra
   - [12.3. Adding support for division and subtraction](#123-adding-support-for-division-and-subtraction)
   - [12.4. Sample expression with tanh expanded](#124-sample-expression-with-tanh-expanded)
 - [13. Part 11: The same example in PyTorch](#13-part-11-the-same-example-in-pytorch)
-- [Part 12: Building a neural net library (multi-layer perceptron)](#part-12-building-a-neural-net-library-multi-layer-perceptron)
-- [14. References](#14-references)
-- [15. Appendix](#15-appendix)
+- [14. Part 12: Building a neural net library (multi-layer perceptron)](#14-part-12-building-a-neural-net-library-multi-layer-perceptron)
+- [15. References](#15-references)
+- [16. Appendix](#16-appendix)
 
 # 1. About these Notes
 
@@ -1667,7 +1667,7 @@ trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
   thing here.
 * An example of PyTorch usage is also provided in the [tests for micrograd][9].
 
-# Part 12: Building a neural net library (multi-layer perceptron)
+# 14. Part 12: Building a neural net library (multi-layer perceptron)
 
 * We have created a mechanism to create quite complex expression.
 * And now we can use this mechanism to create neurons and then layers of
@@ -1723,7 +1723,7 @@ n(x)
 -- Expected output: A Value object with value in the range [-1, 1]
 ```
 
-# 14. References
+# 15. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -1735,4 +1735,4 @@ n(x)
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 [9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
-# 15. Appendix
+# 16. Appendix
