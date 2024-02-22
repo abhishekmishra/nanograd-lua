@@ -39,12 +39,12 @@ Abhishek Mishra
   - [9.4. Redoing the backpropagation on the expression using `_backward`](#94-redoing-the-backpropagation-on-the-expression-using-_backward)
 - [10. Part 8: Backpropagation for the entire expression graph](#10-part-8-backpropagation-for-the-entire-expression-graph)
   - [10.1. Implement the `backward` function in `Value` class](#101-implement-the-backward-function-in-value-class)
-- [Part 9: Fixing backprop bug when using a node multiple times.](#part-9-fixing-backprop-bug-when-using-a-node-multiple-times)
-  - [A longer expression](#a-longer-expression)
-  - [Solution for the bug](#solution-for-the-bug)
-  - [Examples fixed](#examples-fixed)
-- [11. References](#11-references)
-- [12. Appendix](#12-appendix)
+- [11. Part 9: Fixing backprop bug when using a node multiple times.](#11-part-9-fixing-backprop-bug-when-using-a-node-multiple-times)
+  - [11.1. A longer expression](#111-a-longer-expression)
+  - [11.2. Solution for the bug](#112-solution-for-the-bug)
+  - [11.3. Examples fixed](#113-examples-fixed)
+- [12. References](#12-references)
+- [13. Appendix](#13-appendix)
 
 # 1. About these Notes
 
@@ -1244,7 +1244,7 @@ trace_graph.draw_dot_png(o, "plots/plot15-o_backprop_using_backward.png")
 
 ![backpropagation using o:backward](plots/plot15-o_backprop_using_backward.png)
 
-# Part 9: Fixing backprop bug when using a node multiple times.
+# 11. Part 9: Fixing backprop bug when using a node multiple times.
 
 * We have a bug in the existing implemetation of backpropagation which only
   surfaces in certain cases.
@@ -1281,7 +1281,7 @@ trace_graph.draw_dot_png(b, "plots/plot16-backprop_bug_1.png")
 * Even though in the case of `b = a + a`, both self and other are the same node,
   notice that their grads are overwritten by the two lines to 1.
 
-## A longer expression
+## 11.1. A longer expression
 
 * Lets use a longer more complicated expression to demonstrate the bug.
 
@@ -1308,7 +1308,7 @@ trace_graph.draw_dot_png(f, "plots/plot17-backprop_bug_2.png")
   time their `grad` value will be overwritten. Thus resulting in incorrect
   values.
 
-## Solution for the bug
+## 11.2. Solution for the bug
 
 * We need to fix the overwriting of the gradients.
 * See the ["Multivariable chain rule"][7], we need to accumulate the gradients
@@ -1421,7 +1421,7 @@ function Value:backward()
 end
 ```
 
-## Examples fixed
+## 11.3. Examples fixed
 
 * We can run the previous examples and see that the bug is now fixed.
 
@@ -1458,7 +1458,7 @@ trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
 
 ![backpropagation fixed example#2](plots/plot19-fixed_example2.png)
 
-# 11. References
+# 12. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -1468,4 +1468,4 @@ trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
 [6]: https://cs231n.github.io/neural-networks-1/#bio
 [7]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
 
-# 12. Appendix
+# 13. Appendix
