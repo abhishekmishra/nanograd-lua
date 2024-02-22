@@ -50,6 +50,8 @@ Abhishek Mishra
   - [12.4. Sample expression with tanh expanded](#124-sample-expression-with-tanh-expanded)
 - [13. Part 11: The same example in PyTorch](#13-part-11-the-same-example-in-pytorch)
 - [14. Part 12: Building a neural net library (multi-layer perceptron)](#14-part-12-building-a-neural-net-library-multi-layer-perceptron)
+  - [Multi-layer perceptron](#multi-layer-perceptron)
+  - [Complete MLP](#complete-mlp)
 - [15. References](#15-references)
 - [16. Appendix](#16-appendix)
 
@@ -1722,6 +1724,59 @@ n = Neuron(2)
 n(x)
 -- Expected output: A Value object with value in the range [-1, 1]
 ```
+
+## Multi-layer perceptron
+
+* Andrej again refers to the schematic of the mlp (multi-layered perceptron)
+  from the course page of CS231n.
+* He talks about hidden layer 1, and how there are several neurons in the layer
+  and they are not connected to each other but they are fully connected to the
+  inputs.
+
+![Two layer neural net, courtesy CS231N course notes](images/cs231n_neural_net2.jpeg)
+
+* So what is a layer of neurons, it's just a set of neurons evaluated
+  independently.
+
+```lua
+Layer = class('Layer')
+
+--- constructor of a Layer
+-- @param nin number of inputs
+-- @param nout number of outputs
+function Layer:initialize(nin, nout)
+    self.neurons = {}
+    for _ = 1, nout do
+        table.insert(self.neurons, Neuron(nin))
+    end
+end
+
+--- forward pass of the Layer
+-- @param x input vector
+function Layer:__call(x)
+    local outs = {}
+    for _, neuron in ipairs(self.neurons) do
+        table.insert(outs, neuron(x))
+    end
+    return outs
+end
+
+n = Layer(2, 3)
+x = { Value(1), Value(2) }
+y = n(x)
+for _, v in ipairs(y) do
+    print(v)
+end
+-- Expected output: A table of Value objects with value in the range [-1, 1]
+
+```
+
+## Complete MLP
+
+* Finally we complete the picture shown above and create a complete multi-
+  -layer perceptron aka MLP.
+
+
 
 # 15. References
 

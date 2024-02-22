@@ -6,6 +6,8 @@
 local class = require 'lib/middleclass'
 local Value = require 'nanograd/engine'
 
+local nn = {}
+
 local Neuron = class('Neuron')
 
 --- constructor of a Neuron
@@ -39,9 +41,46 @@ function Neuron:__call(x)
     return out
 end
 
+local Layer = class('Layer')
+
+--- constructor of a Layer
+-- @param nin number of inputs
+-- @param nout number of outputs
+function Layer:initialize(nin, nout)
+    self.neurons = {}
+    for _ = 1, nout do
+        table.insert(self.neurons, Neuron(nin))
+    end
+end
+
+--- forward pass of the Layer
+-- @param x input vector
+function Layer:__call(x)
+    local outs = {}
+    for _, neuron in ipairs(self.neurons) do
+        table.insert(outs, neuron(x))
+    end
+    return outs
+end
+
+nn.Neuron = Neuron
+nn.Layer = Layer
+
+
 -- Tests
 -- local n = Neuron(3)
 -- local x = { Value(1), Value(2), Value(3) }
 -- local y = n(x)
 -- print(y)
 -- -- Expected output: A Value object with value in the range [-1, 1]
+
+-- local l = Layer(2, 3)
+-- local x = { Value(1), Value(2) }
+-- local y = l(x)
+-- for _, v in ipairs(y) do
+--     print(v)
+-- end
+-- -- Expected output: A table of Value objects with value in the range [-1, 1]
+
+-- export the nn module
+return nn
