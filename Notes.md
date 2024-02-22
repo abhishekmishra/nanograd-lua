@@ -46,11 +46,11 @@ Abhishek Mishra
 - [12. Part 10: Breaking up tanh: Adding more operations to `Value`](#12-part-10-breaking-up-tanh-adding-more-operations-to-value)
   - [12.1. Supporting constants in `Value.__add`](#121-supporting-constants-in-value__add)
   - [12.2. Adding support for exponentiation in `Value`](#122-adding-support-for-exponentiation-in-value)
-  - [Adding support for division and subtraction](#adding-support-for-division-and-subtraction)
-  - [Sample expression with tanh expanded](#sample-expression-with-tanh-expanded)
-- [Part 11: The same example in PyTorch](#part-11-the-same-example-in-pytorch)
-- [13. References](#13-references)
-- [14. Appendix](#14-appendix)
+  - [12.3. Adding support for division and subtraction](#123-adding-support-for-division-and-subtraction)
+  - [12.4. Sample expression with tanh expanded](#124-sample-expression-with-tanh-expanded)
+- [13. Part 11: The same example in PyTorch](#13-part-11-the-same-example-in-pytorch)
+- [14. References](#14-references)
+- [15. Appendix](#15-appendix)
 
 # 1. About these Notes
 
@@ -1551,7 +1551,7 @@ a:exp()
 -- Value(data = 7.3890560989307)
 ```
 
-## Adding support for division and subtraction
+## 12.3. Adding support for division and subtraction
 
 * Division and subtraction are the last two operations needed to be able to 
   express the tanh function using exponentiation.
@@ -1614,7 +1614,7 @@ end
 
 ```
 
-## Sample expression with tanh expanded
+## 12.4. Sample expression with tanh expanded
 
 * Here's the expression with the tanh node expanded into its component parts.
   
@@ -1656,7 +1656,7 @@ trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
 * As long as we can do the forward pass and backward pass of an operation,
   it does not matter what the operation is.
 
-# Part 11: The same example in PyTorch
+# 13. Part 11: The same example in PyTorch
 
 * In this section of the video Andrej goes over how the same expression is
   implemented in PyTorch.
@@ -1666,7 +1666,7 @@ trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
   thing here.
 * An example of PyTorch usage is also provided in the [tests for micrograd][9].
 
-# 13. References
+# 14. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -1678,4 +1678,4 @@ trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 [9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
-# 14. Appendix
+# 15. Appendix
