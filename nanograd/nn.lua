@@ -60,12 +60,36 @@ function Layer:__call(x)
     for _, neuron in ipairs(self.neurons) do
         table.insert(outs, neuron(x))
     end
+    if #outs == 1 then
+        return outs[1]
+    end
     return outs
+end
+
+local MLP = class('MLP')
+
+--- constructor of a Multi-Layer Perceptron
+function MLP:initialize(nin, nouts)
+    local sz = table.pack(nin, table.unpack(nouts))
+    self.layers = {}
+    for i = 1, #nouts do
+        table.insert(self.layers, Layer(sz[i], sz[i + 1]))
+    end
+end
+
+--- forward pass of the MLP
+-- @param x input vector
+function MLP:__call(x)
+    local out = x
+    for _, layer in ipairs(self.layers) do
+        out = layer(out)
+    end
+    return out
 end
 
 nn.Neuron = Neuron
 nn.Layer = Layer
-
+nn.MLP = MLP
 
 -- Tests
 -- local n = Neuron(3)
@@ -81,6 +105,12 @@ nn.Layer = Layer
 --     print(v)
 -- end
 -- -- Expected output: A table of Value objects with value in the range [-1, 1]
+
+local x = {2, 3, -1}
+local mlp = MLP(3, { 4, 4, 1 })
+local y = mlp(x)
+print(y)
+-- Expected output: A table of 1 Value object with value in the range [-1, 1]
 
 -- export the nn module
 return nn

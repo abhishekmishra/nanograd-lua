@@ -50,8 +50,8 @@ Abhishek Mishra
   - [12.4. Sample expression with tanh expanded](#124-sample-expression-with-tanh-expanded)
 - [13. Part 11: The same example in PyTorch](#13-part-11-the-same-example-in-pytorch)
 - [14. Part 12: Building a neural net library (multi-layer perceptron)](#14-part-12-building-a-neural-net-library-multi-layer-perceptron)
-  - [Multi-layer perceptron](#multi-layer-perceptron)
-  - [Complete MLP](#complete-mlp)
+  - [14.1. Multi-layer perceptron](#141-multi-layer-perceptron)
+  - [14.2. Complete MLP](#142-complete-mlp)
 - [15. References](#15-references)
 - [16. Appendix](#16-appendix)
 
@@ -1725,7 +1725,7 @@ n(x)
 -- Expected output: A Value object with value in the range [-1, 1]
 ```
 
-## Multi-layer perceptron
+## 14.1. Multi-layer perceptron
 
 * Andrej again refers to the schematic of the mlp (multi-layered perceptron)
   from the course page of CS231n.
@@ -1771,12 +1771,96 @@ end
 
 ```
 
-## Complete MLP
+## 14.2. Complete MLP
 
 * Finally we complete the picture shown above and create a complete multi-
   -layer perceptron aka MLP.
+* The multi-layer perceptron takes a number of inputs, and a list of numbers
+  signifying the number of neurons in each layer.
+* Below we try to replicate the sample mlp in the picture at the beginning of
+  this section by create an mlp with 3 inputs, and 2 layers of 4 neurons each,
+  and 1 output.
 
+```lua
+MLP = class('MLP')
 
+--- constructor of a Multi-Layer Perceptron
+function MLP:initialize(nin, nouts)
+    local sz = table.pack(nin, table.unpack(nouts))
+    self.layers = {}
+    for i = 1, #nouts do
+        table.insert(self.layers, Layer(sz[i], sz[i + 1]))
+    end
+end
+
+--- forward pass of the MLP
+-- @param x input vector
+function MLP:__call(x)
+    local out = x
+    for _, layer in ipairs(self.layers) do
+        out = layer(out)
+    end
+    return out
+end
+
+x = {2, 3, -1}
+mlp = MLP(3, { 4, 4, 1 })
+y = mlp(x)
+for _, v in ipairs(y) do
+    print(v)
+end
+-- Value(data = 0.31997025487794)
+-- Expected output: A table of 1 Value object with value in the range [-1, 1]
+```
+
+* To make the above tabular output a little nicer, we make a change in
+  `Layer.__call` to return only the first element if the number of outputs is
+  exactly one.
+* This helps us directly print out the result as one value instead of indexing
+  it in a table whose length we know is 1.
+
+```lua
+--- forward pass of the Layer
+-- @param x input vector
+function Layer:__call(x)
+    local outs = {}
+    for _, neuron in ipairs(self.neurons) do
+        table.insert(outs, neuron(x))
+    end
+    if #outs == 1 then
+        return outs[1]
+    end
+    return outs
+end
+
+```
+
+* And now to use it
+
+```lua
+nn = require('nanograd/nn')
+
+x = {2, 3, -1}
+mlp = nn.MLP(3, { 4, 4, 1 })
+y = mlp(x)
+y
+-- Value(data = 0.21260160250202
+-- Expected a value with value in range [-1, 1]
+```
+
+* We can plot the expression for the MLP, and you can see that the graph is
+  quite complicated and large.
+* "Open the image in a new window/top" and zoom-in to see the details.
+* And we will be able to backpropagate through the expression using our
+  backpropagation implementation.
+
+```lua
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(y, "plots/plot21-mlp.png")
+
+```
+
+![expression graph for the mlp](plots/plot21-mlp.png)
 
 # 15. References
 
