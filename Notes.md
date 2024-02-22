@@ -46,6 +46,9 @@ Abhishek Mishra
 - [12. Part 10: Breaking up tanh: Adding more operations to `Value`](#12-part-10-breaking-up-tanh-adding-more-operations-to-value)
   - [12.1. Supporting constants in `Value.__add`](#121-supporting-constants-in-value__add)
   - [12.2. Adding support for exponentiation in `Value`](#122-adding-support-for-exponentiation-in-value)
+  - [Adding support for division and subtraction](#adding-support-for-division-and-subtraction)
+  - [Sample expression with tanh expanded](#sample-expression-with-tanh-expanded)
+- [Part 11: The same example in PyTorch](#part-11-the-same-example-in-pytorch)
 - [13. References](#13-references)
 - [14. Appendix](#14-appendix)
 
@@ -1548,6 +1551,121 @@ a:exp()
 -- Value(data = 7.3890560989307)
 ```
 
+## Adding support for division and subtraction
+
+* Division and subtraction are the last two operations needed to be able to 
+  express the tanh function using exponentiation.
+* Andrej demonstrates how to implement division in a more general form.
+* We take into consideration the fact that `a/b = a * 1/b = a * (b**-1)`.
+* So we implement the `power` function which helps us implement division.
+
+* First we implement subtraction in terms of negation, which is built upon
+  multiplication with -1.
+
+```lua
+function Value:__unm()
+    return self * -1
+end
+
+--- subtract this Value object with another
+-- using metamethod _sub
+function Value:__sub(other)
+    return self + (-other)
+end
+```
+
+* Here's an example
+
+```lua
+a = Value(2.0)
+b = Value(4.0)
+a - b
+-- Value(data = -2.0)
+```
+
+* Here's how we implemented division using an implemetation of power.
+
+```lua
+function Value:__div(other)
+    return self * other ^ -1
+end
+
+--- This is the power function for the Value class
+-- using metamethod _pow
+-- it does not support the case where the exponent is a Value
+function Value:__pow(other)
+    local this = self
+    if type(other) ~= 'number' then
+        error('Value:__pow: other must be a number')
+    end
+
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data ^ other, { this }, '^' .. other)
+    local _backward = function()
+        this.grad = this.grad
+            + (other * (this.data ^ (other - 1)) * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+```
+
+## Sample expression with tanh expanded
+
+* Here's the expression with the tanh node expanded into its component parts.
+  
+```lua
+Value = require('nanograd/engine')
+
+-- inputs x1, x2
+x1 = Value(2.0); x1.label = 'x1'
+x2 = Value(0.0); x2.label = 'x2'
+-- weights w1, w2
+w1 = Value(-3.0); w1.label = 'w1'
+w2 = Value(1.0); w2.label = 'w2'
+-- bias of the neuron
+b = Value(6.8813735870195432); b.label = 'b'
+x1w1 = x1 * w1; x1w1.label = 'x1w1'
+x2w2 = x2 * w2; x2w2.label = 'x2w2'
+x1w1x2w2 = x1w1 + x2w2; x1w1x2w2.label = 'x1w1 + x2w2'
+n = x1w1x2w2 + b; n.label = 'n'
+e = (2 * n):exp(); e.label = 'e'
+o = (e - 1)/(e + 1); o.label = 'o'
+
+-- backpropagation
+o:backward()
+
+-- print the graph
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
+
+```
+
+![tanh expanded using expression](plots/plot20-tanh_expanded.png)
+
+* The above graph agrees with the previous non-expanded version of the
+  expression in the previous sections.
+* This shows two things:
+  * One: that these two expressions are equivalent
+  * Two: that the granularity of functions supported in the `Value` node is
+    entirely up to us.
+* As long as we can do the forward pass and backward pass of an operation,
+  it does not matter what the operation is.
+
+# Part 11: The same example in PyTorch
+
+* In this section of the video Andrej goes over how the same expression is
+  implemented in PyTorch.
+* He also explains that micrograd is a very simplified version of the operations
+  in PyTorch.
+* This section of the video begins around 1H35M, and I will not repeat the whole
+  thing here.
+* An example of PyTorch usage is also provided in the [tests for micrograd][9].
+
 # 13. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
@@ -1558,5 +1676,6 @@ a:exp()
 [6]: https://cs231n.github.io/neural-networks-1/#bio
 [7]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
+[9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
 # 14. Appendix

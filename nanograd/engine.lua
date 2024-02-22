@@ -59,6 +59,16 @@ function Value:__add(other)
     return out
 end
 
+function Value:__unm()
+    return self * -1
+end
+
+--- subtract this Value object with another
+-- using metamethod _sub
+function Value:__sub(other)
+    return self + (-other)
+end
+
 --- multiply this Value object with another
 -- using metamethod _mul
 function Value:__mul(other)
@@ -74,6 +84,32 @@ function Value:__mul(other)
     local _backward = function()
         this.grad = this.grad + (other.data * out.grad)
         other.grad = other.grad + (this.data * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+function Value:__div(other)
+    return self * other ^ -1
+end
+
+--- This is the power function for the Value class
+-- using metamethod _pow
+-- it does not support the case where the exponent is a Value
+function Value:__pow(other)
+    local this = self
+    if type(other) ~= 'number' then
+        error('Value:__pow: other must be a number')
+    end
+
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data ^ other, { this }, '^' .. other)
+    local _backward = function()
+        this.grad = this.grad
+            + (other * (this.data ^ (other - 1)) * out.grad)
     end
     out._backward = _backward
     return out
