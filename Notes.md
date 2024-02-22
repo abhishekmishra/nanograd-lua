@@ -43,10 +43,10 @@ Abhishek Mishra
   - [11.1. A longer expression](#111-a-longer-expression)
   - [11.2. Solution for the bug](#112-solution-for-the-bug)
   - [11.3. Examples fixed](#113-examples-fixed)
-- [Part 10: Breaking up tanh: Adding more operations to `Value`](#part-10-breaking-up-tanh-adding-more-operations-to-value)
-  - [Supporting constants in `Value.__add`](#supporting-constants-in-value__add)
-- [12. References](#12-references)
-- [13. Appendix](#13-appendix)
+- [12. Part 10: Breaking up tanh: Adding more operations to `Value`](#12-part-10-breaking-up-tanh-adding-more-operations-to-value)
+  - [12.1. Supporting constants in `Value.__add`](#121-supporting-constants-in-value__add)
+- [13. References](#13-references)
+- [14. Appendix](#14-appendix)
 
 # 1. About these Notes
 
@@ -1460,7 +1460,7 @@ trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
 
 ![backpropagation fixed example#2](plots/plot19-fixed_example2.png)
 
-# Part 10: Breaking up tanh: Adding more operations to `Value`
+# 12. Part 10: Breaking up tanh: Adding more operations to `Value`
 
 * In this part of the video Andrej goes on to implement more operations in
   the `Value` class.
@@ -1468,7 +1468,7 @@ trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
   sections and reinforces the learnings.
 * The first operation we add support for is adding `Value` objects to constants.
 
-## Supporting constants in `Value.__add`
+## 12.1. Supporting constants in `Value.__add`
 
 * Andrej adds support for this in the `__add__` metamethod using the check for
   the type of `other` using the `instanceof` operator.
@@ -1513,7 +1513,7 @@ Value(2) + 2
 
 ```
 
-# 12. References
+# 13. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -1523,4 +1523,4 @@ Value(2) + 2
 [6]: https://cs231n.github.io/neural-networks-1/#bio
 [7]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
 
-# 13. Appendix
+# 14. Appendix
