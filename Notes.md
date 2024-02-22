@@ -74,21 +74,23 @@ the value of the expression. It then uses backpropagation to calculate
 the gradients of the expression with respect to the input variables.
 
 ## 2.1. Neural Networks
-Are just mathematical expressions
-Take the weights of the neural network and input data as input, and produce
+
+TODO: this section has just sentence fragments, rephrase the points.
+
+* Neural Networks are just mathematical expressions
+* Take the weights of the neural network and input data as input, and produce
 and output.
-backpropagation is more general than neural networks, it works with any
+* backpropagation is more general than neural networks, it works with any
 mathematical expression.
-Finally, micrograd is built using scalars, which is inefficient, but
+* Finally, micrograd is built using scalars, which is inefficient, but
 simplifies the implmentation and allows us to understand the backpropagation 
 and the chain rule.
-When we want to train a larger network we should be using Tensors.
-Andrej's claim is that micrograd is complete. It has only two files engine.py
+* When we want to train a larger network we should be using Tensors.
+* Andrej's claim is that micrograd is complete. It has only two files engine.py
 which knows nothing about neural networks, and nn.py which is a neural
 network library built on top of engine.py.
-engine.py is literally 100 lines of code in Python. And nn.py is just 60
+* engine.py is literally 100 lines of code in Python. And nn.py is just 60
 lines and is a total joke (sic).
-
 * There's a lot to efficiency, but you can get to a working neural network all
   in less than 200 lines of code.
 
