@@ -45,6 +45,7 @@ Abhishek Mishra
   - [11.3. Examples fixed](#113-examples-fixed)
 - [12. Part 10: Breaking up tanh: Adding more operations to `Value`](#12-part-10-breaking-up-tanh-adding-more-operations-to-value)
   - [12.1. Supporting constants in `Value.__add`](#121-supporting-constants-in-value__add)
+  - [12.2. Adding support for exponentiation in `Value`](#122-adding-support-for-exponentiation-in-value)
 - [13. References](#13-references)
 - [14. Appendix](#14-appendix)
 
@@ -1464,6 +1465,7 @@ trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
 
 * In this part of the video Andrej goes on to implement more operations in
   the `Value` class.
+* One of the goals is to expand the tanh function and implement its formula.
 * This is a sort of repetition of the concepts considered in the previous
   sections and reinforces the learnings.
 * The first operation we add support for is adding `Value` objects to constants.
@@ -1513,6 +1515,39 @@ Value(2) + 2
 
 ```
 
+## 12.2. Adding support for exponentiation in `Value`
+
+* We now add support for exponentiation in the `Value` class. This is required
+  because one of the ways `tanh` can be implemented is by using the formula
+  which expresses it in terms of the exponential function. See
+  [Exponential Definitions of Hyperbolic Functions][8]
+
+```lua
+
+function Value:exp()
+    local x = self.data
+    local out = Value(math.exp(x), { self }, 'exp')
+    local _backward = function()
+        -- because the derivative of exp(x) is exp(x)
+        -- and out.data = exp(x)
+        self.grad = self.grad + (out.data * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+```
+
+* Here's an example of the exp function in a sample expression below.
+
+```lua
+Value = require('nanograd/engine')
+
+a = Value(2.0)
+a:exp()
+-- Value(data = 7.3890560989307)
+```
+
 # 13. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
@@ -1522,5 +1557,6 @@ Value(2) + 2
 [5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
 [6]: https://cs231n.github.io/neural-networks-1/#bio
 [7]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
+[8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 
 # 14. Appendix

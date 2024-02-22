@@ -79,6 +79,18 @@ function Value:__mul(other)
     return out
 end
 
+function Value:exp()
+    local x = self.data
+    local out = Value(math.exp(x), { self }, 'exp')
+    local _backward = function()
+        -- because the derivative of exp(x) is exp(x)
+        -- and out.data = exp(x)
+        self.grad = self.grad + (out.data * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
 --- implement the tanh function for the Value class
 function Value:tanh()
     local x = self.data
