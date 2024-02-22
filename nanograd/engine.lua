@@ -42,9 +42,17 @@ end
 --- add this Value object with another
 -- using metamethod _add
 function Value:__add(other)
-    local out = Value(self.data + other.data, { self, other }, '+')
+    local this = self
+    if type(other) == 'number' then
+        other = Value(other)
+    end
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data + other.data, { this, other }, '+')
     local _backward = function()
-        self.grad = self.grad + (1 * out.grad)
+        this.grad = this.grad + (1 * out.grad)
         other.grad = other.grad + (1 * out.grad)
     end
     out._backward = _backward
@@ -54,10 +62,18 @@ end
 --- multiply this Value object with another
 -- using metamethod _mul
 function Value:__mul(other)
-    local out = Value(self.data * other.data, { self, other }, '*')
+    local this = self
+    if type(other) == 'number' then
+        other = Value(other)
+    end
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data * other.data, { this, other }, '*')
     local _backward = function()
-        self.grad = self.grad + (other.data * out.grad)
-        other.grad = other.grad + (self.data * out.grad)
+        this.grad = this.grad + (other.data * out.grad)
+        other.grad = other.grad + (this.data * out.grad)
     end
     out._backward = _backward
     return out

@@ -43,6 +43,8 @@ Abhishek Mishra
   - [11.1. A longer expression](#111-a-longer-expression)
   - [11.2. Solution for the bug](#112-solution-for-the-bug)
   - [11.3. Examples fixed](#113-examples-fixed)
+- [Part 10: Breaking up tanh: Adding more operations to `Value`](#part-10-breaking-up-tanh-adding-more-operations-to-value)
+  - [Supporting constants in `Value.__add`](#supporting-constants-in-value__add)
 - [12. References](#12-references)
 - [13. Appendix](#13-appendix)
 
@@ -1457,6 +1459,59 @@ trace_graph.draw_dot_png(f, "plots/plot19-fixed_example2.png")
 ```
 
 ![backpropagation fixed example#2](plots/plot19-fixed_example2.png)
+
+# Part 10: Breaking up tanh: Adding more operations to `Value`
+
+* In this part of the video Andrej goes on to implement more operations in
+  the `Value` class.
+* This is a sort of repetition of the concepts considered in the previous
+  sections and reinforces the learnings.
+* The first operation we add support for is adding `Value` objects to constants.
+
+## Supporting constants in `Value.__add`
+
+* Andrej adds support for this in the `__add__` metamethod using the check for
+  the type of `other` using the `instanceof` operator.
+* In lua I've implemented this slightly differently, by checking if the type
+  of `other` is `number` and in that case creating a `Value`
+* In lua the same method is used by the runtime, when the order of operations
+  is reversed (solved in python using the `__rmul__` method).
+* Therefore in lua I have to handle the additional situation when self is a
+  `number`. To not pollute the global `self`, I've used a local `this` variable
+  to create a new `Value` object when `self` is a `number`.
+
+```lua
+function Value:__add(other)
+    local this = self
+    if type(other) == 'number' then
+        other = Value(other)
+    end
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data + other.data, { this, other }, '+')
+    local _backward = function()
+        this.grad = this.grad + (1 * out.grad)
+        other.grad = other.grad + (1 * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+```
+
+* Once the above changes are done in the `Value` class we can write.
+
+```lua
+Value = require('nanograd/engine')
+
+2 + Value(2)
+-- Value(data = 4)
+
+Value(2) + 2
+-- Value(data = 4)
+
+```
 
 # 12. References
 
