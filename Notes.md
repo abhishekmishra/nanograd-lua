@@ -52,8 +52,9 @@ Abhishek Mishra
 - [14. Part 12: Building a neural net library (multi-layer perceptron)](#14-part-12-building-a-neural-net-library-multi-layer-perceptron)
   - [14.1. Multi-layer perceptron](#141-multi-layer-perceptron)
   - [14.2. Complete MLP](#142-complete-mlp)
-- [15. References](#15-references)
-- [16. Appendix](#16-appendix)
+- [15. Part 13: Working with a tiny dataset, writing a loss function](#15-part-13-working-with-a-tiny-dataset-writing-a-loss-function)
+- [16. References](#16-references)
+- [17. Appendix](#17-appendix)
 
 # 1. About these Notes
 
@@ -1841,8 +1842,8 @@ end
 nn = require('nanograd/nn')
 
 x = {2, 3, -1}
-mlp = nn.MLP(3, { 4, 4, 1 })
-y = mlp(x)
+n = nn.MLP(3, { 4, 4, 1 })
+y = n(x)
 y
 -- Value(data = 0.21260160250202
 -- Expected a value with value in range [-1, 1]
@@ -1862,7 +1863,139 @@ trace_graph.draw_dot_png(y, "plots/plot21-mlp.png")
 
 ![expression graph for the mlp](plots/plot21-mlp.png)
 
-# 15. References
+# 15. Part 13: Working with a tiny dataset, writing a loss function
+
+* We will start with a small example dataset created by Andrej.
+* This dataset has four sets of 3 inputs each.
+* And it also had the desired output for each of the four input sets.
+* The expected output for `xs[1]` is `ys[1]` and so on.
+* *Lua Note:* Array indexes in Lua are 1-based.
+* This is basically a very simple binary classifier neural network that we
+  would like to build here.
+
+```lua
+xs = {
+  {2.0, 3.0, -1.0},
+  {3.0, -1.0, 0.5},
+  {0.5, 1.0, 1.0},
+  {1.0, 1.0, -1.0},
+}
+
+ys = {1.0, -1.0, -1.0, 1.0} -- desired targets
+
+```
+
+* Let's see what values our neural network creates for these inputsAnd in
+* We will create a set of neurons for each input set
+
+```lua
+-- get the predictions from our neural network
+ypred = {}
+for _, x in ipairs(xs) do
+  table.insert(ypred, n(x))
+end
+
+-- print the predictions
+for _, yval in ipairs(ypred) do
+  print(yval)
+end
+
+-- Value(data = -0.2125230539818)
+-- Value(data = -0.74155205138326)
+-- Value(data = -0.11718987980605)
+-- Value(data = -0.56119517054583)
+```
+
+* Notice that the values we get aren't the ones that we want.
+* So how do we *tune* the neural net, how to set the weights to better predict
+  the expected values.
+* The trick used in deep learning is to calculate a single number which 
+  represents the performance of your entire neural network.
+* We call this single number the **loss**.
+* The **loss** is defined in such a way as to measure close we are to the
+  expected values.
+* And in our case we notice that the output values are quite far apart from
+  th expected values so the **loss** is going to be *high*.
+* So particularly in this example we're going to implement the **Mean-squared**
+  **error** loss function.
+* Lets calculate the squared-difference of each expected output and calculated
+  output.
+* The difference is small when the predicted output is close to the expected one
+  and higher when it is not.
+* Squaring the difference ensures that we are removing the sign of the
+  difference, as we are only interested in the magnitude of the difference.
+* We could also have taken an absolute value instead of a square.
+
+```lua
+for idx, ygt in ipairs(ys) do
+  local yout = ypred[idx]
+  local diff_sq = (yout - ygt) ^ 2
+  print(diff_sq)
+end
+
+-- Value(data = 1.4702121564374)
+-- Value(data = 0.0667953421442)
+-- Value(data = 0.77935370831686)
+-- Value(data = 2.4373303605356)
+```
+
+* The final loss is just the sum of all these squared difference values.
+
+```lua
+loss = 0
+for idx, ygt in ipairs(ys) do
+  local yout = ypred[idx]
+  local diff_sq = (yout - ygt) ^ 2
+  loss = loss + diff_sq
+end
+loss
+-- Value(data = 4.753691567434)
+```
+
+* And now we want to minimize the loss.
+* Because if the loss is low then all the predictions are equal or close to
+  their targets.
+* Lowest value for the loss is zero, and the greater it is the worse is the
+  neural net's prediction.
+* Now we can call `loss.backward()`.
+
+```lua
+loss:backward()
+```
+
+* And then we can look at the gradient of the weight of one of the neurons.
+
+```lua
+n.layers[1].neurons[1].w[1].grad
+
+-- -0.24412389856678
+```
+
+* We see that the gradient 1st weight of the 1st neuron in the 1st layer is
+  negative.
+* This means that we increase the weight in some way then the output will
+  decrease, and if we decrease it the output will increase.
+* And we have this information for all the neurons in our neural network.
+* We can now look at the graph of the loss, and it is a really massive graph
+  as it the loss expression is the sum of square differences of prediction
+  and value from the calling the same neural network expression 4 times.
+* Therefore it has four forward passes of the neural network.
+* And this loss is then backpropagated through all the neurons of the network,
+  impacting every weight in the network.
+* There are gradients even on the input data, but the gradients on the input
+  data are not that useful to us. Because we cannot change the inputs.
+* The gradients on the neuron weights are quite useful, because we can change
+  these values.
+
+```lua
+trace_graph = require("util/trace_graph")
+trace_graph.draw_dot_png(loss, "plots/plot22-loss_fn.png")
+```
+
+![expression graph for the loss](plots/plot22-loss_fn.png)
+
+
+# 16. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -1874,4 +2007,4 @@ trace_graph.draw_dot_png(y, "plots/plot21-mlp.png")
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 [9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
-# 16. Appendix
+# 17. Appendix
