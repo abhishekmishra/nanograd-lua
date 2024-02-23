@@ -58,7 +58,10 @@ Abhishek Mishra
   - [17.1. Changing the parameters](#171-changing-the-parameters)
   - [17.2. Convert our manual steps into a loop](#172-convert-our-manual-steps-into-a-loop)
   - [17.3. Fixing a **bug** in the training](#173-fixing-a-bug-in-the-training)
-- [18. Summary of the Lecture](#18-summary-of-the-lecture)
+- [18. Part 16: Summary of the Lecture](#18-part-16-summary-of-the-lecture)
+- [Part 17: Walkthrough of micrograd](#part-17-walkthrough-of-micrograd)
+- [Part 18: Walkthrough of PyTorch code](#part-18-walkthrough-of-pytorch-code)
+- [Part 19: Conclusion](#part-19-conclusion)
 - [19. References](#19-references)
 - [20. Appendix](#20-appendix)
 
@@ -2477,7 +2480,7 @@ end
   have bugs but the network might work just like the previous one worked. But
   if we have larger problems, then the neural network might not optimize well.
 
-# 18. Summary of the Lecture
+# 18. Part 16: Summary of the Lecture
 
 **What are neural nets?** 
 Neural nets are these mathematical expressions,
@@ -2533,6 +2536,40 @@ There would be few other differences but fundamentally the neural net setup and
 training are identical and pervasive.
 
 Now you should understand intuitively, how it works under the hood.
+
+# Part 17: Walkthrough of micrograd
+
+* In this part of the video Andrej tries to show that the entire exercise
+  would have resulted in the code of micrograd.
+* I will not describe the entire walkthrough.
+* In the appendix section I will provide the program listing for *nanograd*, my
+  implementation of *micrograd* in lua.
+* One of the differences in *micrograd* is that it uses the *relu* non-linearity
+  as opposed to *tanh* in the video.
+* Andrej says he prefers *tanh* but I don't understand the reasons he provides,
+  so I will not list them here.
+* Notably *nn.py* has an extra `Module` class, which is added to bring it closer
+  to the PyTorch API.
+* There is an additional demo in *micrograd* which has a more involved example,
+  it is a binary classifier with a batched loss function. This is a strategy for
+  updates used in large neural networks where only a batch/ a subset of the
+  network goes through the gradient descent iteration.
+  Andrej mentions several other important items in the demo which I don't
+  understand. At some future date I might go back and implement the whole
+  thing and add it here.
+
+# Part 18: Walkthrough of PyTorch code
+
+Andrej does a walkthrough of the PyTorch library in this part.
+He specifically shows us the tanh backward pass in the pytorch code.
+He also shows the document in pytorch showing how to add a new autograd function
+TODO: add reference to the document here.
+
+# Part 19: Conclusion
+
+Andrej metions some other resources and a forum in the conclusion.
+
+And we are done!
 
 # 19. References
 
