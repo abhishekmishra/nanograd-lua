@@ -55,9 +55,12 @@ Abhishek Mishra
 - [15. Part 13: Working with a tiny dataset, writing a loss function](#15-part-13-working-with-a-tiny-dataset-writing-a-loss-function)
 - [16. Part 14: Collecting the parameters of the neural net](#16-part-14-collecting-the-parameters-of-the-neural-net)
 - [17. Part 15: Manual gradient descent to train the network](#17-part-15-manual-gradient-descent-to-train-the-network)
-  - [Changing the parameters](#changing-the-parameters)
-- [18. References](#18-references)
-- [19. Appendix](#19-appendix)
+  - [17.1. Changing the parameters](#171-changing-the-parameters)
+  - [17.2. Convert our manual steps into a loop](#172-convert-our-manual-steps-into-a-loop)
+  - [17.3. Fixing a **bug** in the training](#173-fixing-a-bug-in-the-training)
+- [18. Summary of the Lecture](#18-summary-of-the-lecture)
+- [19. References](#19-references)
+- [20. Appendix](#20-appendix)
 
 # 1. About these Notes
 
@@ -2164,7 +2167,7 @@ n.layers[1].neurons[1].w[1].data
 -- 0.89947108740256
 ```
 
-## Changing the parameters
+## 17.1. Changing the parameters
 
 * What we want to do is iterate through the parameters, and update the data
   of each parameter according to its gradient.
@@ -2287,7 +2290,196 @@ end
   neural network.
 * And we have successfully trained a neural network manually.
 
-# 18. References
+## 17.2. Convert our manual steps into a loop
+
+* I've already done some of this in the previous step, but we will follow
+  Andrej and reimplement the training as a loop over the forward pass, backward
+  pass and the gradient descent.
+* And this time we will also start with a fresh initialization of the neural
+  network.
+
+```lua
+nn = require('nanograd/nn')
+
+-- create the neural network
+x = {2, 3, -1}
+n = nn.MLP(3, { 4, 4, 1 })
+y = n(x)
+
+-- setup the input and output data
+xs = {
+  {2.0, 3.0, -1.0},
+  {3.0, -1.0, 0.5},
+  {0.5, 1.0, 1.0},
+  {1.0, 1.0, -1.0},
+}
+
+ys = {1.0, -1.0, -1.0, 1.0} -- desired targets
+
+-- training step, with 20 steps and 0.05 step size
+for k = 1, 20, 1 do
+  -- forward pass
+   ypred = {}
+  for _, x in ipairs(xs) do
+    table.insert(ypred, n(x))
+  end
+
+  loss = 0
+  for idx, ygt in ipairs(ys) do
+    local yout = ypred[idx]
+    local diff_sq = (yout - ygt) ^ 2
+    loss = loss + diff_sq
+  end
+
+  -- backward pass
+  loss:backward()
+
+  -- update
+  for _, p in ipairs(n:parameters()) do
+    p.data = p.data + (-0.05 * p.grad)
+  end
+
+  print(k, loss.data)
+end
+
+-- a sample run
+-- 1       8.948223142018
+-- 2       5.6293444074632
+-- 3       2.3747899826466
+-- 4       1.1305574554506
+-- 5       0.32438208407916
+-- 6       0.01127065361211
+-- 7       0.001092566984279
+-- 8       0.00017517554507502
+-- 9       4.2222575600352e-05
+-- 10      1.4604597369626e-05
+-- 11      7.0620246480703e-06
+-- 12      4.670629236246e-06
+-- 13      4.070696694394e-06
+-- 14      4.4236130445702e-06
+-- 15      5.6055300153419e-06
+-- 16      7.7314608834729e-06
+-- 17      1.0909389649905e-05
+-- 18      1.4992666354178e-05
+-- 19      1.939669241198e-05
+-- 20      2.3173729333138e-05
+```
+
+* You can see that we converge very fast to a very low loss.
+* `ypred` should now be very good.
+
+```lua
+for _, y in ipairs(ypred) do
+  print(y)
+end
+-- Value(data = 1.0)
+-- Value(data = -0.99519773140024)
+-- Value(data = -0.99966541723159)
+-- Value(data = 1.0)
+```
+
+## 17.3. Fixing a **bug** in the training
+
+* Andrej explains that he has a major **bug** in the previous process.
+* And it is a common bug, that he has tweeted about it before.
+* TODO: find the tweet and insert it here - it is referenced at 2:11:20 of the
+  video.
+* The bug is that in the parameter update process in the training, we update
+  the data but we don't *flush* the gradient it stays there.
+* And so the subsequent backward pass is not starting with reset gradients,
+  but from computed gradients for the previous backward pass, which starts
+  accumulating errors in the gradient.
+* We need to go to the forward pass step, and go over all all the parameters
+  and set their gradients to 0 before we do the backward pass.
+
+```lua
+nn = require('nanograd/nn')
+
+-- create the neural network
+x = {2, 3, -1}
+n = nn.MLP(3, { 4, 4, 1 })
+y = n(x)
+
+-- setup the input and output data
+xs = {
+  {2.0, 3.0, -1.0},
+  {3.0, -1.0, 0.5},
+  {0.5, 1.0, 1.0},
+  {1.0, 1.0, -1.0},
+}
+
+ys = {1.0, -1.0, -1.0, 1.0} -- desired targets
+
+-- training step, with 20 steps and 0.05 step size
+for k = 1, 20, 1 do
+  -- forward pass
+   ypred = {}
+  for _, x in ipairs(xs) do
+    table.insert(ypred, n(x))
+  end
+
+  loss = 0
+  for idx, ygt in ipairs(ys) do
+    local yout = ypred[idx]
+    local diff_sq = (yout - ygt) ^ 2
+    loss = loss + diff_sq
+  end
+
+  -- BUGFIX
+  -- zero grad
+  for _, p in ipairs(n:parameters()) do
+    p.grad = 0.0
+  end
+
+  -- backward pass
+  loss:backward()
+
+  -- update
+  for _, p in ipairs(n:parameters()) do
+    p.data = p.data + (-0.05 * p.grad)
+  end
+
+  print(k, loss.data)
+end
+
+-- sample run
+-- 1       6.5107018704825
+-- 2       3.1126005724299
+-- 3       2.4938825913187
+-- 4       1.7883930573954
+-- 5       1.2408403651583
+-- 6       0.79327624737986
+-- 7       0.6255781249874
+-- 8       0.53704169336572
+-- 9       0.47040794696311
+-- 10      0.41668536261753
+-- 11      0.37251264940738
+-- 12      0.33558241819608
+-- 13      0.30426434323535
+-- 14      0.27737926211604
+-- 15      0.25405593621082
+-- 16      0.23363804467625
+-- 17      0.21562241567462
+-- 18      0.1996171136397
+-- 19      0.18531241921525
+-- 20      0.17246035336327
+```
+
+* You can see that we now have a much slower descent, but we still end up with
+  a pretty decent loss.
+* We can get better and better results if we repeat the above iteration more
+  and more times.
+* The only reason the previous trainings worked is that the sample we used is
+  a very simple problem, and it is *easy* for this neural net to fit this data.
+  * The grads ended up accumulating, and it gave a massive step size, which
+    helped us converge very fast onto the correct predictions.
+* *WARNING:* working with neural networks can be tricky because the code might
+  have bugs but the network might work just like the previous one worked. But
+  if we have larger problems, then the neural network might not optimize well.
+
+# 18. Summary of the Lecture
+
+# 19. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -2299,4 +2491,4 @@ end
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 [9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
-# 19. Appendix
+# 20. Appendix
