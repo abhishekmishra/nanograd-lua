@@ -59,11 +59,11 @@ Abhishek Mishra
   - [17.2. Convert our manual steps into a loop](#172-convert-our-manual-steps-into-a-loop)
   - [17.3. Fixing a **bug** in the training](#173-fixing-a-bug-in-the-training)
 - [18. Part 16: Summary of the Lecture](#18-part-16-summary-of-the-lecture)
-- [Part 17: Walkthrough of micrograd](#part-17-walkthrough-of-micrograd)
-- [Part 18: Walkthrough of PyTorch code](#part-18-walkthrough-of-pytorch-code)
-- [Part 19: Conclusion](#part-19-conclusion)
-- [19. References](#19-references)
-- [20. Appendix](#20-appendix)
+- [19. Part 17: Walkthrough of micrograd](#19-part-17-walkthrough-of-micrograd)
+- [20. Part 18: Walkthrough of PyTorch code](#20-part-18-walkthrough-of-pytorch-code)
+- [21. Part 19: Conclusion](#21-part-19-conclusion)
+- [22. References](#22-references)
+- [23. Appendix](#23-appendix)
 
 # 1. About these Notes
 
@@ -2537,7 +2537,7 @@ training are identical and pervasive.
 
 Now you should understand intuitively, how it works under the hood.
 
-# Part 17: Walkthrough of micrograd
+# 19. Part 17: Walkthrough of micrograd
 
 * In this part of the video Andrej tries to show that the entire exercise
   would have resulted in the code of micrograd.
@@ -2558,20 +2558,20 @@ Now you should understand intuitively, how it works under the hood.
   understand. At some future date I might go back and implement the whole
   thing and add it here.
 
-# Part 18: Walkthrough of PyTorch code
+# 20. Part 18: Walkthrough of PyTorch code
 
 Andrej does a walkthrough of the PyTorch library in this part.
 He specifically shows us the tanh backward pass in the pytorch code.
 He also shows the document in pytorch showing how to add a new autograd function
 TODO: add reference to the document here.
 
-# Part 19: Conclusion
+# 21. Part 19: Conclusion
 
 Andrej metions some other resources and a forum in the conclusion.
 
 And we are done!
 
-# 19. References
+# 22. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -2583,4 +2583,4 @@ And we are done!
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 [9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
-# 20. Appendix
+# 23. Appendix
