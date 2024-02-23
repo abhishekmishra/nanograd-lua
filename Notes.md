@@ -53,8 +53,10 @@ Abhishek Mishra
   - [14.1. Multi-layer perceptron](#141-multi-layer-perceptron)
   - [14.2. Complete MLP](#142-complete-mlp)
 - [15. Part 13: Working with a tiny dataset, writing a loss function](#15-part-13-working-with-a-tiny-dataset-writing-a-loss-function)
-- [16. References](#16-references)
-- [17. Appendix](#17-appendix)
+- [16. Part 14: Collecting the parameters of the neural net](#16-part-14-collecting-the-parameters-of-the-neural-net)
+- [17. Part 15: Manual gradient descent to train the network](#17-part-15-manual-gradient-descent-to-train-the-network)
+- [18. References](#18-references)
+- [19. Appendix](#19-appendix)
 
 # 1. About these Notes
 
@@ -1994,8 +1996,164 @@ trace_graph.draw_dot_png(loss, "plots/plot22-loss_fn.png")
 
 ![expression graph for the loss](plots/plot22-loss_fn.png)
 
+# 16. Part 14: Collecting the parameters of the neural net
 
-# 16. References
+* Now we would like to collect all the parameters of the neural network which
+  can be changed.
+* We can use this information to improve the prediction of our neural network.
+* We will take each parameter, and use its gradient information to slighly
+  **nudge** it in the proper direction, thus improving our prediction slightly.
+* Lets first implement a `parameters` function on the Neuron, Layer and MLP
+  so that we can get the parameters at each level of abstraction.
+* Andrej explains that the PyTorch API has a similar method at each module to
+  get the parameters of the neural network. In PyTorch the parameters contain
+  tensors, in our case they consist of scalars.
+* The following three methods are added to the three classes in our `nn` module.
+
+```lua
+--- get the parameters of the Neuron
+function Neuron:parameters()
+    local params = {}
+    for _, w in ipairs(self.w) do
+        table.insert(params, w)
+    end
+    table.insert(params, self.b)
+    return params
+end
+
+--- get the parameters of the Layer
+function Layer:parameters()
+    local params = {}
+    for _, neuron in ipairs(self.neurons) do
+        for _, p in ipairs(neuron:parameters()) do
+            table.insert(params, p)
+        end
+    end
+    return params
+end
+
+--- get the parameters of the MLP
+function MLP:parameters()
+    local params = {}
+    for _, layer in ipairs(self.layers) do
+        for _, p in ipairs(layer:parameters()) do
+            table.insert(params, p)
+        end
+    end
+    return params
+end
+```  
+
+* Since we have added functionality to the library classes, we will have to
+  re-initialize the network, which will mean that the numbers from the previous
+  sections will change.
+* But lets re-create the network and get the parameter.
+* We will use the same inputs and expected outputs as before.
+
+```lua
+nn = require('nanograd/nn')
+
+x = {2, 3, -1}
+n = nn.MLP(3, { 4, 4, 1 })
+y = n(x)
+params = n:parameters()
+for _, p in ipairs(params) do
+  print(p)
+end
+
+-- Value(data = 0.89947108740256)
+-- Value(data = 0.21710691494644)
+-- Value(data = -0.2568461254886)
+-- Value(data = -0.49265812862045)
+-- Value(data = 0.12414315431987)
+-- Value(data = 0.94707373819403)
+-- Value(data = 0.63404890788629)
+-- Value(data = 0.42185675500494)
+-- Value(data = 0.0089102760436)
+-- Value(data = 0.58044623302781)
+-- Value(data = -0.86929071148439)
+-- Value(data = 0.15575208693409)
+-- Value(data = 0.44288573669835)
+-- Value(data = 0.4667738499158)
+-- Value(data = -0.98407767069638)
+-- Value(data = -0.14693628572282)
+-- Value(data = 0.39951610093775)
+-- Value(data = 0.44764131141769)
+-- Value(data = 0.03944588338849)
+-- Value(data = 0.7494742957424)
+-- Value(data = 0.71090438564231)
+-- Value(data = -0.74601199565492)
+-- Value(data = -0.25752269338228)
+-- Value(data = -0.90957262177433)
+-- Value(data = 0.0359006962453)
+-- Value(data = -0.080902850065914)
+-- Value(data = 0.96416457202521)
+-- Value(data = 0.23499143701794)
+-- Value(data = 0.24300516537216)
+-- Value(data = 0.32503985553126)
+-- Value(data = -0.35125740109367)
+-- Value(data = -0.99598507893982)
+-- Value(data = 0.51356883398199)
+-- Value(data = -0.87182971744332)
+-- Value(data = -0.59188237397656)
+-- Value(data = -0.42479770662424)
+-- Value(data = 0.91480448125106)
+-- Value(data = -0.9121852924116)
+-- Value(data = 0.57555963689187)
+-- Value(data = -0.3616257041031)
+-- Value(data = -0.70890243621625)
+```
+
+* Those are all the parameters of the neural network.
+* In total there are 41 parameters in the network. 
+
+```lua
+#params
+-- 41
+```
+
+# 17. Part 15: Manual gradient descent to train the network
+
+* Now we can recalculate the predictions, and also recalculate the loss.
+
+```lua
+xs = {
+  {2.0, 3.0, -1.0},
+  {3.0, -1.0, 0.5},
+  {0.5, 1.0, 1.0},
+  {1.0, 1.0, -1.0},
+}
+
+ys = {1.0, -1.0, -1.0, 1.0} -- desired targets
+
+-- get the predictions from our neural network
+ypred = {}
+for _, x in ipairs(xs) do
+  table.insert(ypred, n(x))
+end
+
+-- print the predictions
+for _, yval in ipairs(ypred) do
+  print(yval)
+end
+
+-- Value(data = 0.95846078164411)
+-- Value(data = 0.65318359523669)
+-- Value(data = -0.3159095385672)
+-- Value(data = 0.9479771814826)
+
+loss = 0
+for idx, ygt in ipairs(ys) do
+  local yout = ypred[idx]
+  local diff_sq = (yout - ygt) ^ 2
+  loss = loss + diff_sq
+end
+loss
+
+-- Value(data = 3.2054276392912)
+```
+
+# 18. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
 [2]: https://en.wikipedia.org/wiki/Differentiation_rules
@@ -2007,4 +2165,4 @@ trace_graph.draw_dot_png(loss, "plots/plot22-loss_fn.png")
 [8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
 [9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
 
-# 17. Appendix
+# 19. Appendix

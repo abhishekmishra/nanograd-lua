@@ -41,6 +41,16 @@ function Neuron:__call(x)
     return out
 end
 
+--- get the parameters of the Neuron
+function Neuron:parameters()
+    local params = {}
+    for _, w in ipairs(self.w) do
+        table.insert(params, w)
+    end
+    table.insert(params, self.b)
+    return params
+end
+
 local Layer = class('Layer')
 
 --- constructor of a Layer
@@ -66,6 +76,17 @@ function Layer:__call(x)
     return outs
 end
 
+--- get the parameters of the Layer
+function Layer:parameters()
+    local params = {}
+    for _, neuron in ipairs(self.neurons) do
+        for _, p in ipairs(neuron:parameters()) do
+            table.insert(params, p)
+        end
+    end
+    return params
+end
+
 local MLP = class('MLP')
 
 --- constructor of a Multi-Layer Perceptron
@@ -85,6 +106,17 @@ function MLP:__call(x)
         out = layer(out)
     end
     return out
+end
+
+--- get the parameters of the MLP
+function MLP:parameters()
+    local params = {}
+    for _, layer in ipairs(self.layers) do
+        for _, p in ipairs(layer:parameters()) do
+            table.insert(params, p)
+        end
+    end
+    return params
 end
 
 nn.Neuron = Neuron
