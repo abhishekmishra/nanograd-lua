@@ -55,6 +55,7 @@ Abhishek Mishra
 - [15. Part 13: Working with a tiny dataset, writing a loss function](#15-part-13-working-with-a-tiny-dataset-writing-a-loss-function)
 - [16. Part 14: Collecting the parameters of the neural net](#16-part-14-collecting-the-parameters-of-the-neural-net)
 - [17. Part 15: Manual gradient descent to train the network](#17-part-15-manual-gradient-descent-to-train-the-network)
+  - [Changing the parameters](#changing-the-parameters)
 - [18. References](#18-references)
 - [19. Appendix](#19-appendix)
 
@@ -2149,9 +2150,142 @@ for idx, ygt in ipairs(ys) do
   loss = loss + diff_sq
 end
 loss
-
 -- Value(data = 3.2054276392912)
+
+loss:backward()
 ```
+
+* Lets look at one of the neurons in the network
+
+```lua
+n.layers[1].neurons[1].w[1].grad
+-- 1.7179419965102
+n.layers[1].neurons[1].w[1].data
+-- 0.89947108740256
+```
+
+## Changing the parameters
+
+* What we want to do is iterate through the parameters, and update the data
+  of each parameter according to its gradient.
+* Each of these changes will be a *tiny update* in this gradient descent scheme.
+* In **gradient descent** we're thinking of the gradient as a *vector pointing*
+  *in the direction of increased loss*.
+* And thus the tiny nudge in a parameter's data should be in the opposite
+  direction of the gradient, if we want to *minimize the loss*.
+* So we will increase the data if gradient is negative, and decrease it if the
+  gradient is positive.
+* This will help us minimize the loss.
+
+```lua
+for _, p in ipairs(n:parameters()) do
+  p.data = p.data + (-0.01 * p.grad)
+end
+```
+
+* If we look at the neuron we looked at in the previous section we see that
+  its data is decreased by a tiny amount, as the grad was positive.
+
+```lua
+n.layers[1].neurons[1].w[1].data
+-- 0.88229166743745
+```
+
+* Now lets redo the forward pass and recaluculate our loss, to compare if
+  the loss has really gone down.
+
+```lua
+-- get the predictions from our neural network
+ypred = {}
+for _, x in ipairs(xs) do
+  table.insert(ypred, n(x))
+end
+
+-- print the predictions
+for _, yval in ipairs(ypred) do
+  print(yval)
+end
+
+-- Value(data = 0.9515274948404)
+-- Value(data = 0.46169799654315)
+-- Value(data = -0.56459976791272)
+-- Value(data = 0.93800864943225)
+
+loss = 0
+for idx, ygt in ipairs(ys) do
+  local yout = ypred[idx]
+  local diff_sq = (yout - ygt) ^ 2
+  loss = loss + diff_sq
+end
+loss
+-- Value(data = 2.3323269065016)
+```
+
+* We can see that the value of *loss* has reduced.
+* Remember that we created *loss* such that a lower loss means that the
+  predictions are closer to the actual output (or y) values.
+* And now all we have to do is to iterate this process.
+* We can now call `loss.backward()` and then rerun the gradient descent by
+  changing the parameters and calculate the loss, and we will have even lower
+  loss.
+
+```lua
+for i = 1, 10, 1 do
+  for _, p in ipairs(n:parameters()) do
+    p.data = p.data + (-0.01 * p.grad)
+  end
+
+  ypred = {}
+  for _, x in ipairs(xs) do
+    table.insert(ypred, n(x))
+  end
+
+  loss = 0
+  for idx, ygt in ipairs(ys) do
+    local yout = ypred[idx]
+    local diff_sq = (yout - ygt) ^ 2
+    loss = loss + diff_sq
+  end
+  print(loss)
+
+  loss:backward()
+end
+
+-- After repeating the above a few times
+-- Value(data = 0.12040247627763)
+-- Value(data = 0.062943226742918)
+-- Value(data = 0.031032400220314)
+-- Value(data = 0.014858863401187)
+-- Value(data = 0.0070343726399085)
+```
+
+* We can also try the above loop with an increased step size when *nudging* the
+  parameters.
+* This can help us get to a lower loss value faster with fewer iterations.
+* However since we do not know the shape of the loss function, with a large step
+  size we can overshoot a local minima and end up spending more time getting
+  to an acceptable loss, and using up more iterations.
+* Thus a higher step size can destabilize training.
+
+```lua
+for _, y in ipairs(ypred) do
+  print(y)
+end
+-- Value(data = 0.95485405874161)
+-- Value(data = -0.99275523185195)
+-- Value(data = -0.99791606900258)
+-- Value(data = 0.92971922600112)
+```  
+
+* We can also see that the predictions have come quite close to the expected
+  output values which were {1, -1, -1, 1}
+* Usually the *learning rate* and its *tuning* is a **subtle art**.
+* With a slow *learning rate* you might take too much time, but with a higher
+  one the learning can become unstable and you might not necessarily reduce
+  the loss.
+* now the values in `n.parameters()` represent our parameters for a trained
+  neural network.
+* And we have successfully trained a neural network manually.
 
 # 18. References
 
