@@ -2479,6 +2479,61 @@ end
 
 # 18. Summary of the Lecture
 
+**What are neural nets?** 
+Neural nets are these mathematical expressions,
+fairly simple mathematical expressions in the case of multi-layer perceptrons,
+that take inputs for the neurons as the input data. Also the weights for
+the neurons, and followed by a loss function. The loss function measures
+the accuracy of the predictions.
+
+The loss function indicates if the neural net is somehow *behaving well* and is
+able to predict our target data properly.
+
+When the loss is low the network is doing what you want it do on your problem.
+
+**Backpropagation**
+When we have the loss, we use the backpropagation process to calculate the
+gradient at each node of the expression, so that we know how to manipulate the
+network to minimize the loss.
+
+**Gradient Descent**
+And we have to iterate the process of forward pass (calculating the expression
+followed by its loss), then backpropagating the gradients, and finally updating
+the parameters based on the gradients several times to keep reducing the loss
+till it has reached some acceptable value.
+
+**Neural nets in the large**
+We just have a blob of neural net stuff, and we can make it do arbitrary things.
+The examples we have used have only 41 parameters but we can build neural nets
+with billions of parameters or even trillions in some cases. And this is a blob
+or neurons simulating neuron tissue and one can make it do extremely complex
+problems.
+
+And these large neural nets have then very fascinating emergent properties when
+you try to make them do significantly hard problems.
+
+In GPT for e.g. we have the entire dataset of the internet and we are taking
+some text and we are trying to predict the next token in the text. And this is
+the prediction problem, and you see that when you train this on the entire
+internet the network has these interesting emergent properties. But that net
+would have hundreds of billions of parameters.
+
+But it works on these same fundamental principles.
+
+The neural network implementation will be more complex, but the steps in the
+gradient descent would essentially be the same.
+
+People would use slightly different update procedure. The one we use is a very
+"simple" stochastic gradient descent update.
+
+And the loss would not be MSE (mean-squared error), it would be using cross-
+-entropy loss.
+
+There would be few other differences but fundamentally the neural net setup and
+training are identical and pervasive.
+
+Now you should understand intuitively, how it works under the hood.
+
 # 19. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
