@@ -1,8 +1,15 @@
 <h1>Notes from Andrej Karpathy's building micrograd video.</h1>
-<p>
-Date: 13/02/2024
-Abhishek Mishra
-</p>
+<h5><i>by Abhishek Mishra<i></h5>
+
+**Version History**
+| Date       | Version | Change |
+| ---------- | ------- | ------ |
+| 13/02/2024 | 0.1     | Initial version. |
+| 23/02/2024 | 0.2     | All notes added. |
+| 24/02/2024 | 0.3     | Mising references, grammar, composition edit, Appendix|
+
+*For a detailed history of this document see*
+*[https://github.com/abhishekmishra/nanograd-lua/commits/main/Notes.md]*
 
 <hr/>
 
@@ -64,56 +71,103 @@ Abhishek Mishra
 - [21. Part 19: Conclusion](#21-part-19-conclusion)
 - [22. References](#22-references)
 - [23. Appendix](#23-appendix)
+  - [23.1. Program Listing - *engine.lua*](#231-program-listing---enginelua)
+  - [23.2. Program Listing - *nn.lua*](#232-program-listing---nnlua)
 
 # 1. About these Notes
 
 Recently I came across Andrej Karpathy's 
 ["building micrograd" video on youtube][1], after reading a mention of it on 
-hackernews perhaps 🤔 (not sure).
+hackernews or first on the youtube recommended videos and then HN perhaps,
+ 🤔 but I'm not sure. I studied the lecture in several *passes* (yes this is a
+weak pun).
 
+**The first pass**
 I watched the whole video first. Then I was so intrigued I decided to implement
 the same engine in a language which is *not python*, so that I can work through
 the development of the engine and get it working and also test the results with 
 Andrej's version.
 
+**Aside on the quality of the lecture**
+And before we move on, when I say intrigued - the video lecture is such a high
+quality that I would say it is one of the best computer science video lectures 
+I've seen rivalling with the original SICP videos by Abelson and Sussman. It is 
+as if after watching the video, the curtain is raised on the simplicity of 
+something you always thought of as complicated. And now there is no way you're 
+going to forget what you've learnt.
+
+**Second pass**
 In the second pass I watched the video and took notes about what Andrej was
 explaining as well as about the python code.
 
+**Third and later passes**
 In the third and later passes I slowly implemented the code for each section
-and added the code and the results back to this document.
+and added the code and the results back to this document. 
 
+**Implemented in Lua**
+I've implemented all the code in the [Lua programming language][2]. This 
+presents certain challenges unique to this language. However I think since the 
+language facilities used are very basic object=orientation, some arithmetic and 
+some math functions, and some library for graphviz plots, the program can be 
+written in most modern high-level languages. I did this in Lua to make sure I 
+wasn't just *copying* the python code, rather writing my own having made sure I 
+understood the python code.
+
+*Lua Note:* Across the document there are a few places where I place these
+asides called *Lua Note:*. These describe the differences or some specific
+difference in implementation due to a lack of features or a different way of
+doing things in Lua.
+
+*Lua Note:* Lua is an excellent programming language for many different tasks,
+and I highly recommend it. However it is important to note that it is the
+**opposite of "batteries-included"**. Most of the time one has to use libraries
+or write implmentations for features which are part of languages like Python
+that have large standard libraries.
+
+On the other hand, Lua has an advantage - one can get up an running with
+programming in it very quickly. Let me share one of my favourite write-ups
+about Lua - [Lua in 15 minutes][3].
+
+**Structure of the Notes**
+Now that I've setup the why and how, let me also quickly describe the structure
+of this document. Since these are notes, they follow the structure of the video
+almost exactly. Starting the next section, the section heading contains
+which Part of the video the section is referring to, and and the heading also
+names the section similarly to the video.
 
 # 2. Part 0: micrograd overview
 
-In this section of tutorial, Andrej provides an overview of micrograd. It is
-an autograd engine. It implments backpropagation (reverse mode autodiff) over
-a dynamically built DAG.
-It is also a small neural networks library with a PyTorch-like API
-Micrograd basically allows you to build out mathematical expressions,
-and he shows us an example (from the README.md of micrograd).
+In this section of tutorial, Andrej provides an overview of [micrograd][4]. It 
+is an autograd engine that implments backpropagation (reverse mode autodiff) 
+over a dynamically built DAG.
 
-The library builds an expression and through a forward pass calculates
-the value of the expression. It then uses backpropagation to calculate
-the gradients of the expression with respect to the input variables.
+It is also a small neural networks library with a [PyTorch][5]-like API. 
+Micrograd basically allows you to build out mathematical expressions, and he 
+shows us an example (from the README.md of micrograd).
+
+The library builds an expression and through a forward pass calculates the value
+of the expression. It then uses backpropagation to calculate the gradients of 
+the expression with respect to the input variables.
 
 ## 2.1. Neural Networks
 
-TODO: this section has just sentence fragments, rephrase the points.
+In this section Andrej talks about what Neural Networks are, and how micrograd
+will get us there.
 
-* Neural Networks are just mathematical expressions
-* Take the weights of the neural network and input data as input, and produce
-and output.
-* backpropagation is more general than neural networks, it works with any
-mathematical expression.
+* Neural Networks are just mathematical expressions.
+* These expressions take the weights of the neural network and input data as 
+  input, and produce and output.
+* *backpropagation* is more general than neural networks, it works with any
+  mathematical expression.
 * Finally, micrograd is built using scalars, which is inefficient, but
-simplifies the implmentation and allows us to understand the backpropagation 
-and the chain rule.
+  simplifies the implmentation and allows us to understand the backpropagation 
+  and the chain rule.
 * When we want to train a larger network we should be using Tensors.
 * Andrej's claim is that micrograd is complete. It has only two files engine.py
-which knows nothing about neural networks, and nn.py which is a neural
-network library built on top of engine.py.
+  which knows nothing about neural networks, and nn.py which is a neural
+  network library built on top of engine.py.
 * engine.py is literally 100 lines of code in Python. And nn.py is just 60
-lines and is a total joke (sic).
+  lines and is a total joke (sic).
 * There's a lot to efficiency, but you can get to a working neural network all
   in less than 200 lines of code.
 
@@ -134,7 +188,7 @@ f(3.0)
 * We can also plot this function over a range of values.
 
 ```lua
-for x = -5,5,0.25 do
+for x = -5, 5, 0.25 do
     print(x, f(x))
 end
 
@@ -145,14 +199,13 @@ end
 
 ## 3.1. Derivative of the Expression
 * Now we will think about the derivative of the expression.
-* See the [Differentiation rules][2]
+* See the [Differentiation rules][6]
 * In neural networks no one actually writes an expression and derives it.
 * We are not going for the symbolic approach.
 * We will try and understand what the derivative is measuring and what it is
   telling us about the function.
 * We look at the definition of the derivative in terms of Limit from the wiki
-  page of derivative.
-TODO: update the definition of derivative here.
+  page of derivative. [Derivative as a Limit][7].
 * Basically how does the function respond to an infinitesimal change in the
   input variable. What is the slope of the function at the point.
 
@@ -312,7 +365,7 @@ of the micrograd project.
 * Lets start with the skeleton of a very simple value object.
 * *Lua Note:* Lua is object-oriented but does not have classes. To keep the
   structure of the code similar to the one in the video,
-  we will write the classes using the excellent [*middleclass*][3] library.
+  we will write the classes using the excellent [*middleclass*][8] library.
     - The code will be slightly more verbose than python.
 * Here we create a simple value class, then create an instance `a`, and
   finally print it out.
@@ -419,7 +472,7 @@ d
 * Internally the `children` are stored as **set** for efficiency.
 * *Lua Note:* Lua does not have sets either. However sets can be eumulated in
   Lua using tables by keeping the elements as *indices* of a table. See 
-  [11.5 – Sets and Bags (Programming in Lua)][4] for details of this approach.
+  [11.5 – Sets and Bags (Programming in Lua)][9] for details of this approach.
 
 ```lua
 class = require 'lib/middleclass'
@@ -748,7 +801,7 @@ trace_graph.draw_dot_png(L, "plots/plot5-f_and_d_grad.png")
 * Now going back in the network let's calculate dL/dc and dL/de.
 * Here we will use the rule that `df/dx = df/dy * dy/dx`. This is the
   **chain rule of calculus**.
-* See the [Intuitive explanation of the chain rule][5].
+* See the [Intuitive explanation of the chain rule][10].
 * Since `dL/dd` is known then if we can calculate `dd/dc` then we can get
   `dL/dc = dL/dd * dd/dc`.
 * We can use similar reasoning for `dL/de`.
@@ -815,7 +868,7 @@ L.data
 * We're going to do a more useful example of manual backpropagation, for a
   neuron.
 * Andrej refers to an image of a neuron in his video which is from the course
-  notes of [CS231n: Convolutional Neural Networks for Visual Recognition][5].
+  notes of [CS231n: Convolutional Neural Networks for Visual Recognition][10].
 * He also refers to an image of two-layer neural net - multi-layer perceptrons
   from the same course notes.
 * I've included both the images below for reference.
@@ -1330,7 +1383,7 @@ trace_graph.draw_dot_png(f, "plots/plot17-backprop_bug_2.png")
 ## 11.2. Solution for the bug
 
 * We need to fix the overwriting of the gradients.
-* See the ["Multivariable chain rule"][7], we need to accumulate the gradients
+* See the ["Multivariable chain rule"][12], we need to accumulate the gradients
   using addition instead of replacing them.
 * Therefore the solution to the bug is simple, we need to change the two lines
   which replace `self.grad` and `other.grad` to accumulate instead of replace
@@ -1536,7 +1589,7 @@ Value(2) + 2
 * We now add support for exponentiation in the `Value` class. This is required
   because one of the ways `tanh` can be implemented is by using the formula
   which expresses it in terms of the exponential function. See
-  [Exponential Definitions of Hyperbolic Functions][8]
+  [Exponential Definitions of Hyperbolic Functions][13]
 
 ```lua
 
@@ -1677,7 +1730,7 @@ trace_graph.draw_dot_png(o, "plots/plot20-tanh_expanded.png")
   in PyTorch.
 * This section of the video begins around 1H35M, and I will not repeat the whole
   thing here.
-* An example of PyTorch usage is also provided in the [tests for micrograd][9].
+* An example of PyTorch usage is also provided in the [tests for micrograd][14].
 
 # 14. Part 12: Building a neural net library (multi-layer perceptron)
 
@@ -2560,27 +2613,383 @@ Now you should understand intuitively, how it works under the hood.
 
 # 20. Part 18: Walkthrough of PyTorch code
 
-Andrej does a walkthrough of the PyTorch library in this part.
-He specifically shows us the tanh backward pass in the pytorch code.
+Andrej does a walkthrough of the PyTorch library in this part. He specifically 
+shows us the tanh backward pass in the pytorch code.
+
 He also shows the document in pytorch showing how to add a new autograd function
-TODO: add reference to the document here.
+- [PyTorch: Defining New autograd Functions][15].
 
 # 21. Part 19: Conclusion
 
 Andrej metions some other resources and a forum in the conclusion.
+The forum is also listed at [Neural Networks: Zero to Hero][16]
 
 And we are done!
 
 # 22. References
 
 [1]: https://www.youtube.com/watch?v=VMj-3S1tku0
-[2]: https://en.wikipedia.org/wiki/Differentiation_rules
-[3]: https://github.com/kikito/middleclass
-[4]: https://www.lua.org/pil/11.5.html
-[5]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
-[6]: https://cs231n.github.io/neural-networks-1/#bio
-[7]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
-[8]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
-[9]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
+[2]: https://lua.org/about.html
+[3]: https://tylerneylon.com/a/learn-lua/
+[4]: https://github.com/karpathy/micrograd.git
+[5]: https://pytorch.org/docs/stable/index.html
+[6]: https://en.wikipedia.org/wiki/Differentiation_rules
+[7]: https://en.wikipedia.org/wiki/Derivative#As_a_limit
+[8]: https://github.com/kikito/middleclass
+[9]: https://www.lua.org/pil/11.5.html
+[10]: https://en.wikipedia.org/wiki/Chain_rule#Intuitive_explanation
+[11]: https://cs231n.github.io/neural-networks-1/#bio
+[12]: https://en.wikipedia.org/wiki/Chain_rule#Multivariable_case
+[13]: https://en.wikipedia.org/wiki/Hyperbolic_functions#Exponential_definitions
+[14]: https://github.com/karpathy/micrograd/blob/c911406e5ace8742e5841a7e0df113ecb5d54685/test/test_engine.py
+[15]: https://pytorch.org/tutorials/beginner/examples_autograd/two_layer_net_custom_function.html
+[16]: https://karpathy.ai/zero-to-hero.html
 
 # 23. Appendix
+
+## 23.1. Program Listing - *engine.lua*
+
+The latest version of this file can also be found at - 
+[https://github.com/abhishekmishra/nanograd-lua/blob/main/nanograd/engine.lua]
+
+```lua
+--- engine.lua: Value class for the nanograd library, based on micrograd.
+--
+-- Date: 15/02/2024
+-- Author: Abhishek Mishra
+
+local class = require 'lib/middleclass'
+local Set = require 'util/set'
+
+--- Declare the class Value
+Value = class('Value')
+
+--- static incrementing identifier
+Value.static._next_id = 0
+
+--- static method to get the next identifier
+function Value.static.next_id()
+    local next = Value.static._next_id
+    Value.static._next_id = Value.static._next_id + 1
+    return next
+end
+
+--- constructor
+function Value:initialize(data, _children, _op, label)
+    self.data = data
+    self.grad = 0
+    self._op = _op or ''
+    self.label = label or ''
+    self._backward = function() end
+    self.id = Value.next_id()
+    if _children == nil then
+        self._prev = Set.empty()
+    else
+        self._prev = Set(_children)
+    end
+end
+
+--- string representation of the Value object
+function Value:__tostring()
+    return 'Value(data = ' .. self.data .. ')'
+end
+
+--- add this Value object with another
+-- using metamethod _add
+function Value:__add(other)
+    local this = self
+    if type(other) == 'number' then
+        other = Value(other)
+    end
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data + other.data, { this, other }, '+')
+    local _backward = function()
+        this.grad = this.grad + (1 * out.grad)
+        other.grad = other.grad + (1 * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+function Value:__unm()
+    return self * -1
+end
+
+--- subtract this Value object with another
+-- using metamethod _sub
+function Value:__sub(other)
+    return self + (-other)
+end
+
+--- multiply this Value object with another
+-- using metamethod _mul
+function Value:__mul(other)
+    local this = self
+    if type(other) == 'number' then
+        other = Value(other)
+    end
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data * other.data, { this, other }, '*')
+    local _backward = function()
+        this.grad = this.grad + (other.data * out.grad)
+        other.grad = other.grad + (this.data * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+function Value:__div(other)
+    return self * other ^ -1
+end
+
+--- This is the power function for the Value class
+-- using metamethod _pow
+-- it does not support the case where the exponent is a Value
+function Value:__pow(other)
+    local this = self
+    if type(other) ~= 'number' then
+        error('Value:__pow: other must be a number')
+    end
+
+    if type(self) == 'number' then
+        this = Value(self)
+    end
+
+    local out = Value(this.data ^ other, { this }, '^' .. other)
+    local _backward = function()
+        this.grad = this.grad
+            + (other * (this.data ^ (other - 1)) * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+function Value:exp()
+    local x = self.data
+    local out = Value(math.exp(x), { self }, 'exp')
+    local _backward = function()
+        -- because the derivative of exp(x) is exp(x)
+        -- and out.data = exp(x)
+        self.grad = self.grad + (out.data * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+--- implement the tanh function for the Value class
+function Value:tanh()
+    local x = self.data
+    local t = (math.exp(2 * x) - 1) / (math.exp(2 * x) + 1)
+    local out = Value(t, { self }, 'tanh')
+    local _backward = function()
+        self.grad = self.grad + ((1 - t * t) * out.grad)
+    end
+    out._backward = _backward
+    return out
+end
+
+--- implement the backpropagation for the Value
+function Value:backward()
+    local topo = {}
+    local visited = Set.empty()
+
+    local function build_topo(v)
+        if not visited:contains(v) then
+            visited:add(v)
+            for _, child in ipairs(v._prev:items()) do
+                build_topo(child)
+            end
+            table.insert(topo, v)
+        end
+    end
+
+    build_topo(self)
+
+    -- visit each node in the topological sort (in the reverse order)
+    -- and call the _backward function on each Value
+    self.grad = 1
+    for i = #topo, 1, -1 do
+        topo[i]._backward()
+    end
+end
+
+-- begin test
+
+-- local a = Value(2.0)
+-- local b = Value(-3.0)
+-- local c = Value(10.0)
+
+-- local d = a * b + c
+-- print(d) -- Value(data = 4.0)
+-- print(d._prev)
+-- print(d._op)
+
+-- end test
+
+-- export the Value class
+return Value
+
+```
+
+## 23.2. Program Listing - *nn.lua*
+
+The latest version of this file can be found at -
+[https://github.com/abhishekmishra/nanograd-lua/blob/main/nanograd/nn.lua]
+
+```lua
+--- nn.lua: Classes to implement a neural network similar to the micrograd API.
+--
+-- Date: 22/02/2024
+-- Author: Abhishek Mishra
+
+local class = require 'lib/middleclass'
+local Value = require 'nanograd/engine'
+
+local nn = {}
+
+local Neuron = class('Neuron')
+
+--- constructor of a Neuron
+-- @param nin number of inputs
+function Neuron:initialize(nin)
+    --- create a random number in the range [-1, 1]
+    local function rand_float()
+        return (math.random() - 0.5) * 2
+    end
+
+    -- create a table of random weights
+    self.w = {}
+    for _ = 1, nin do
+        table.insert(self.w, Value(rand_float()))
+    end
+
+    -- create a random bias
+    self.b = Value(rand_float())
+end
+
+--- forward pass of the Neuron
+-- calculate the activation and then apply the activation function
+-- which in our case is the tanh function
+-- @param x input vector
+function Neuron:__call(x)
+    local act = self.b
+    for i = 1, #self.w do
+        act = act + self.w[i] * x[i]
+    end
+    local out = act:tanh()
+    return out
+end
+
+--- get the parameters of the Neuron
+function Neuron:parameters()
+    local params = {}
+    for _, w in ipairs(self.w) do
+        table.insert(params, w)
+    end
+    table.insert(params, self.b)
+    return params
+end
+
+local Layer = class('Layer')
+
+--- constructor of a Layer
+-- @param nin number of inputs
+-- @param nout number of outputs
+function Layer:initialize(nin, nout)
+    self.neurons = {}
+    for _ = 1, nout do
+        table.insert(self.neurons, Neuron(nin))
+    end
+end
+
+--- forward pass of the Layer
+-- @param x input vector
+function Layer:__call(x)
+    local outs = {}
+    for _, neuron in ipairs(self.neurons) do
+        table.insert(outs, neuron(x))
+    end
+    if #outs == 1 then
+        return outs[1]
+    end
+    return outs
+end
+
+--- get the parameters of the Layer
+function Layer:parameters()
+    local params = {}
+    for _, neuron in ipairs(self.neurons) do
+        for _, p in ipairs(neuron:parameters()) do
+            table.insert(params, p)
+        end
+    end
+    return params
+end
+
+local MLP = class('MLP')
+
+--- constructor of a Multi-Layer Perceptron
+function MLP:initialize(nin, nouts)
+    local sz = table.pack(nin, table.unpack(nouts))
+    self.layers = {}
+    for i = 1, #nouts do
+        table.insert(self.layers, Layer(sz[i], sz[i + 1]))
+    end
+end
+
+--- forward pass of the MLP
+-- @param x input vector
+function MLP:__call(x)
+    local out = x
+    for _, layer in ipairs(self.layers) do
+        out = layer(out)
+    end
+    return out
+end
+
+--- get the parameters of the MLP
+function MLP:parameters()
+    local params = {}
+    for _, layer in ipairs(self.layers) do
+        for _, p in ipairs(layer:parameters()) do
+            table.insert(params, p)
+        end
+    end
+    return params
+end
+
+nn.Neuron = Neuron
+nn.Layer = Layer
+nn.MLP = MLP
+
+-- Tests
+-- local n = Neuron(3)
+-- local x = { Value(1), Value(2), Value(3) }
+-- local y = n(x)
+-- print(y)
+-- -- Expected output: A Value object with value in the range [-1, 1]
+
+-- local l = Layer(2, 3)
+-- local x = { Value(1), Value(2) }
+-- local y = l(x)
+-- for _, v in ipairs(y) do
+--     print(v)
+-- end
+-- -- Expected output: A table of Value objects with value in the range [-1, 1]
+
+local x = {2, 3, -1}
+local mlp = MLP(3, { 4, 4, 1 })
+local y = mlp(x)
+print(y)
+-- Expected output: A table of 1 Value object with value in the range [-1, 1]
+
+-- export the nn module
+return nn
+
+```
