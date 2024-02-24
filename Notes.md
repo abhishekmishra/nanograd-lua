@@ -1,5 +1,5 @@
 <h1>Notes from Andrej Karpathy's building micrograd video.</h1>
-<h5><i>by Abhishek Mishra<i></h5>
+<h5><i>by Abhishek Mishra</i></h5>
 
 **Version History**
 | Date       | Version | Change |
